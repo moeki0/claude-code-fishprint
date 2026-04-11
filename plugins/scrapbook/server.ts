@@ -248,7 +248,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         }
 
         const structure = summarize(main, 0);
-        const MAX_CHARS = 50000;
+        const MAX_CHARS = 20000;
         const truncated = structure.length > MAX_CHARS;
         return { structure: truncated ? structure.slice(0, MAX_CHARS) : structure, truncated };
       });
