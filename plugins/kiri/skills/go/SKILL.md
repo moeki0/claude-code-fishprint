@@ -64,11 +64,16 @@ For recurring themes, place a config file at project root.
 
 ## Flow
 
+### Phase 0: Load config
+
+**First, check if `./kiri.json` exists.** If it does, read it with the Read tool and use its values for all subsequent phases. Pay special attention to:
+- `theme` — overrides the argument
+- `sources` — determines which sources to use in Phase 1. **Only use sources listed here.**
+- `instructions` — must be followed in all phases
+
 ### Phase 1: Gather
 
-Search **broadly** based on the theme. Don't stop at one query — vary angles, languages, and source types.
-
-Behave according to `sources` config.
+**Only use the sources specified in `sources` config.** If `sources` is `["x"]`, do NOT use WebSearch. If `sources` is `["web"]`, do NOT browse X.
 
 **If `"web"` is included (default):**
 - Generate multiple search queries from the theme (different angles, both English and the user's language)
