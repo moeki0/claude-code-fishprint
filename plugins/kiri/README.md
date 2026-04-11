@@ -1,75 +1,98 @@
 # Kiri
 
-Webコンテンツを切り取り、翻訳し、まとめるClaude Codeプラグイン。
+A Claude Code plugin that clips, translates, and compiles web content into a scrapbook.
 
-記事やツイートのスクショに翻訳を注入したり、画像内のテキストをOCRで翻訳オーバーレイしたり、それらをまとめてMarkdownページを生成する。
+Captures screenshots of articles and tweets with injected translations, OCR-translates text in images, and assembles everything into a Markdown page.
 
-## インストール
+## Install
 
 ```
 /plugin marketplace add moeki0/kiri
 /plugin install kiri@kiri
 ```
 
-依存関係（Playwright等）は初回実行時に自動インストールされます。
-
-### オプション
+Then run once in your terminal:
 
 ```bash
-# OCR機能を使う場合
+cd ~/.claude/plugins/cache/kiri/kiri/*/
+bun install && bunx playwright install chromium
+bun link
+```
+
+### Optional
+
+```bash
+# For OCR
 brew install tesseract        # macOS
 sudo apt install tesseract-ocr  # Linux
 
-# Gyazoを使う場合
+# For Gyazo image hosting
 # macOS
 security add-generic-password -a gyazo -s kiri -w YOUR_GYAZO_TOKEN -U
 # Linux
 secret-tool store --label=kiri service kiri key gyazo
 ```
 
-## スキル一覧
+## Skills
 
-| コマンド | 説明 |
-|---------|------|
-| `/kiri:go <theme>` | メインフロー。テーマに沿って情報収集→背景調査→翻訳スクショ→Markdownページ生成 |
-| `/kiri:read <url>` | Webページのテキストを読み取る |
-| `/kiri:capture <url>` | ページ要素に翻訳を注入してスクショ |
-| `/kiri:ocr <image>` | 画像内テキストをOCRし、翻訳オーバーレイを作成 |
+| Command | Description |
+|---------|-------------|
+| `/kiri:go <theme>` | Main flow: gather → research → capture → generate Markdown |
+| `/kiri:capture <url>` | Take translated screenshots of page elements |
+| `/kiri:ocr <image>` | OCR text from images and create translation overlays |
 
-### 例
+### Examples
 
 ```
-/kiri:go AI最新ニュース
-/kiri:go 量子コンピュータの研究動向
-/kiri:read https://example.com/article
+/kiri:go latest EV market trends
+/kiri:go AI model releases this week
 /kiri:capture https://x.com/user/status/123
 /kiri:ocr ~/Downloads/chart.png
 ```
 
-## 設定（オプション）
+## Configuration (optional)
 
-繰り返し同じテーマで使う場合、プロジェクトルートに `kiri.json` を配置：
+For recurring themes, place a `kiri.json` at your project root:
 
 ```json
 {
-  "name": "週刊AIニュース",
-  "theme": "AI・LLM・機械学習の最新動向",
+  "name": "AI Weekly",
+  "theme": "AI, LLM, and machine learning developments",
   "output": "wiki/ai_news_{{date}}.md",
   "images": "gyazo",
-  "instructions": "解説は技術者向けに書く。Obsidianのwiki link形式を使う。"
+  "sources": ["web", "x"],
+  "instructions": "Write in Japanese. Use Obsidian wiki link format."
 }
 ```
 
-| フィールド | 説明 | デフォルト |
-|-----------|------|----------|
-| `name` | 出力ページのタイトル | テーマから自動生成 |
-| `theme` | 検索・選別・解説の判断軸 | 引数から取得 |
-| `output` | 出力先パス。`{{date}}`は`YYYY_MM_DD`に置換 | `kiri_{{date}}.md` |
+| Field | Description | Default |
+|-------|-------------|---------|
+| `name` | Title for the output page | Auto-generated from theme |
+| `theme` | Guides search, selection, and commentary | From arguments |
+| `output` | Output path. `{{date}}` → `YYYY_MM_DD` | `kiri_{{date}}.md` |
 | `images` | `"gyazo"` or `"local"` | `"local"` |
-| `instructions` | すべてのフェーズに適用されるカスタム指示 | なし |
+| `sources` | Information sources (see below) | `["web"]` |
+| `instructions` | Custom directives applied to all phases | None |
 
-`kiri.json`がない場合は引数でテーマを渡すか、対話で設定します。
+Without `kiri.json`, pass the theme as an argument or Kiri will ask interactively.
 
-## ライセンス
+### Sources
+
+| Source | Description | Requirements |
+|--------|-------------|--------------|
+| `"web"` | Search via WebSearch | None (default) |
+| `"x"` | Browse X (Twitter) timeline | [Claude in Chrome](https://chromewebstore.google.com/detail/claude-in-chrome/aeiigcfknpfpdklbppjhgoappogemjim) extension |
+
+`"web"` is always available. `"x"` requires the Claude in Chrome browser extension, which lets Claude Code interact with your logged-in browser to read your X timeline, extract tweets, and capture them.
+
+```json
+// Web only (default, no extensions needed)
+{ "sources": ["web"] }
+
+// Web + X timeline
+{ "sources": ["web", "x"] }
+```
+
+## License
 
 MIT
