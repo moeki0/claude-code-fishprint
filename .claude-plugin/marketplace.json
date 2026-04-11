@@ -11,11 +11,7 @@
       "displayName": "Kiri",
       "description": "Webコンテンツを切り取り、翻訳し、まとめる。翻訳スクショ・OCR翻訳オーバーレイ・Markdown生成。",
       "version": "0.1.0",
-      "source": {
-        "source": "url",
-        "url": "https://github.com/moeki0/kiri.git",
-        "sha": "95b842405878520e66e6794832ca317df2f34c0f"
-      }
+      "source": "./plugins/kiri"
     }
   ]
 }
