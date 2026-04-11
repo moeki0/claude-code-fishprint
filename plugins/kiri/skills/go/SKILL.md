@@ -1,6 +1,6 @@
 ---
 name: go
-description: Collect information from the web on a given theme. Screenshots for highlights, text for summaries. Use when asked to "research", "summarize", "collect", or "look into" something.
+description: Browse X timeline, capture interesting tweets as screenshots, and write context. Use when asked for "news", "what's happening", "timeline", or "tweets".
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -13,27 +13,24 @@ allowed-tools:
   - mcp__claude-in-chrome__*
 ---
 
-# Kiri — Clip highlights, summarize the rest
+# Kiri — X timeline digest with tweet screenshots
 
 Arguments: `$ARGUMENTS`
 
-## Philosophy
+## What Kiri does
 
-**Screenshots for highlights. Text for everything else.**
-
-Kiri produces a digest. Important visuals (tweets, charts, hero images, key quotes) are captured as screenshots. Context and summaries are written as text. Translations are done in text, not injected into images.
-
-- Screenshots: tweets, embedded images, charts, infographics, key UI elements
-- Text: summaries, translations, context, commentary
-- Embedded images in articles should always be captured
-- Foreign content is translated as text alongside the screenshot
+1. Browse the user's X timeline
+2. Pick interesting tweets matching the theme
+3. Screenshot each tweet (auto-archive / 魚拓)
+4. Research background context via WebSearch
+5. Write a Markdown digest: tweet screenshots + context
 
 ## Theme
 
 Priority:
-1. **If arguments are provided** → use as theme (e.g., `/kiri:go latest EV market trends`)
+1. **If arguments are provided** → use as theme (e.g., `/kiri:go AI`)
 2. **If `./kiri.json` exists** → read theme, output, images from it
-3. **Neither** → ask the user what they want
+3. **Neither** → ask the user
 
 Defaults when using arguments only:
 - `output`: `kiri_{{date}}.md` (current directory)
@@ -41,23 +38,17 @@ Defaults when using arguments only:
 
 ## kiri.json (optional)
 
-For recurring themes, place a config file at project root.
-
 ```json
 {
-  "name": "Cat News",
-  "theme": "Funny cat stories, viral videos, cat cafes, rescue cats",
-  "output": "cat_news_{{date}}.md",
+  "name": "AI News",
+  "theme": "AI, LLM, machine learning developments",
+  "output": "ai_news_{{date}}.md",
   "images": "local",
-  "sources": ["web", "x"],
-  "instructions": "Write in Japanese. Always capture cute cat photos."
+  "instructions": "Write in Japanese."
 }
 ```
 
-- `images`: `"gyazo"` or `"local"`. Gyazo requires a token in the OS keychain
-- `sources`: Array of sources. Default `["web"]`
-  - `"web"` → WebSearch
-  - `"x"` → Browse X Following timeline via Chrome (requires claude-in-chrome MCP)
+- `images`: `"gyazo"` or `"local"`
 - `instructions` → Custom directives applied to all phases
 
 **If `./kiri.json` exists, always follow `instructions`.**
@@ -66,24 +57,11 @@ For recurring themes, place a config file at project root.
 
 ### Phase 0: Load config
 
-**First, check if `./kiri.json` exists.** If it does, read it with the Read tool and use its values for all subsequent phases. Pay special attention to:
-- `theme` — overrides the argument
-- `sources` — determines which sources to use in Phase 1. **Only use sources listed here.**
-- `instructions` — must be followed in all phases
+**First, check if `./kiri.json` exists.** If it does, read it with the Read tool.
 
-### Phase 1: Gather
+### Phase 1: Collect tweets from X
 
-**Only use the sources specified in `sources` config.** If `sources` is `["x"]`, do NOT use WebSearch. If `sources` is `["web"]`, do NOT browse X.
-
-**If `"web"` is included (default):**
-- **Always search in English first** — English sources are broader, more up-to-date, and cover more ground. Then search in the user's language for local perspectives
-- Generate multiple search queries (different angles, synonyms, related terms)
-- Use WebSearch
-- Seek diverse sources (not just mainstream — blogs, specialist sites, social media too)
-
-**If `"x"` is included (requires claude-in-chrome MCP):**
-
-Collect from **two sources on X**:
+Requires claude-in-chrome MCP.
 
 **A. Following timeline:**
 1. `tabs_context_mcp` to check current tabs
@@ -97,85 +75,56 @@ Collect from **two sources on X**:
 
 **B. Explore / Trending:**
 1. `navigate` to `https://x.com/explore/tabs/trending`
-2. Use the same incremental scroll collection to gather trending tweets
-3. Also check `https://x.com/explore/tabs/news` for news-related trending topics
-4. Collect tweet URLs and text
+2. Same incremental scroll collection
+3. Also check `https://x.com/explore/tabs/news`
 
-5. Merge results from A and B, pick theme-related tweets and links
+Merge results from A and B.
 
 ### Phase 2: Select
 
-Pick the **3–5 most important** URLs/tweets. Judge by theme relevance.
+Pick **5-10 tweets** that match the theme. Aim for diversity.
 
-Aim for diversity — don't pick items that all say the same thing.
+### Phase 3: Capture tweets
 
-### Phase 3: Research (per topic)
+For each selected tweet, open its permalink and screenshot the tweet element.
 
-Research background for each topic to write informed summaries.
+1. Call `kiri_open(tweet_url)` — opens the tweet page
+2. Call `kiri_capture(["article[data-testid='tweet']"], localDir)` — screenshots the tweet
+3. Repeat for each tweet
 
-- **WebSearch** for related context
-- **WebFetch** to read article text (no browser needed, fast)
-- For tweets, check the full thread, quoted tweets, and replies
+### Phase 4: Research & write
 
-### Phase 4: Capture highlights
+For each captured tweet, research the background:
 
-Use `kiri_open` and `kiri_capture` for visual highlights only. The browser stays alive between calls.
-
-**What to capture as screenshots:**
-- Tweets (the `article[data-testid="tweet"]` element)
-- Embedded images and photos in articles (`img`, `figure`)
-- Charts, graphs, infographics
-- Key UI elements or product screenshots
-
-**What NOT to capture — write as text instead:**
-- Article titles → write as `## heading`
-- Body text → summarize/translate as text
-- Quotes → write as `> blockquote`
-
-**For each page:**
-
-1. Call `kiri_open(url)` — returns DOM structure. Use it to find image/figure/tweet selectors
-2. Call `kiri_capture(selectors, localDir?)` — capture only visual elements
-3. If selectors miss, adjust and call `kiri_capture` again
+- **WebSearch** for related context (what is this about? why does it matter?)
+- **WebFetch** to read linked articles if the tweet references one
 
 ### Phase 5: Generate Markdown
 
-**Do NOT call kiri_done for this.** Write the Markdown yourself, mixing text and captured images.
+Write the Markdown yourself. For each tweet:
 
 ```markdown
-## Topic title (written as text)
+## Brief topic description
 
-Summary of the topic in the user's language. 2-3 sentences of context.
+![](tweet_screenshot.png)
 
-![](captured_tweet.png)
+Background context in 2-3 sentences. What is this about, why it matters,
+what the implications are.
 
-> Key quote translated to user's language
-
-![](chart_from_article.png)
-
-Further explanation as needed.
-
-→ [Source](original URL)
+→ [Tweet](https://x.com/user/status/123)
 
 ---
-
-## Next topic
-
-...
 ```
 
-**Output rules:**
-- Headings and summaries as text
-- Screenshots for visual highlights (tweets, images, charts)
-- Translate foreign text content in text, not in screenshots
-- Actively capture all embedded images from articles
+**Rules for output:**
+- `##` heading: brief topic label (not the tweet text)
+- Tweet screenshot
+- 2-3 sentences of context/background researched via WebSearch
+- Link to original tweet
 - `---` between topics
-- Always include source link
 
 ## Rules
 
-- No duplicates: don't clip the same topic from multiple sources
-- Judge freshness by theme (breaking news → recent only; research → any time period)
-- Translate faithfully. Don't summarize source quotes
+- No duplicates
+- Translate foreign tweets in the context text, not in screenshots
 - On error, skip and move on
-- If Chrome is unavailable, fall back to WebSearch only
