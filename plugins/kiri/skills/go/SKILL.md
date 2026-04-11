@@ -168,32 +168,11 @@ For images with foreign-language text, call `kiri_ocr(imagePath)` to get text + 
 
 ### Phase 5: Generate Markdown
 
-Create a Markdown file at the output path. **Images only. No text.**
+Call `kiri_done(output)` to automatically generate the Markdown file.
 
-```markdown
-![](image1)
-![](image2)
-![](image3)
-![](image4)
-![](image5)
-![](image6)
-[Source](original URL)
+All captured images are assembled in order, grouped by source URL, separated by `---`, with source links.
 
----
-
-![](image7)
-![](image8)
-![](image9)
-![](image10)
-[Source](original URL)
-```
-
-**Strict rules for output:**
-- **NO titles in text.** Title is a clipped image
-- **NO commentary or explanations.** Let images speak
-- **NO supplementary text.** Nothing between images
-- Only a `[Source](URL)` link after each topic's images
-- Separate topics with `---`
+The `output` path comes from `kiri.json` or defaults to `kiri_{{date}}.md`. `{{date}}` is auto-replaced with `YYYY_MM_DD`.
 
 ## Rules
 

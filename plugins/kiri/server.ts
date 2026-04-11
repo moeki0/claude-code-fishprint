@@ -19,6 +19,11 @@ let browser: Browser | null = null;
 let currentPage: Page | null = null;
 let currentUrl: string = "";
 
+// キャプチャ履歴（kiri_done用）
+type CaptureGroup = { sourceUrl: string; images: string[] };
+let captureHistory: CaptureGroup[] = [];
+let currentGroup: CaptureGroup | null = null;
+
 async function ensureBrowser(): Promise<Browser> {
   if (!browser || !browser.isConnected()) {
     browser = await chromium.launch({ headless: true });
@@ -120,6 +125,17 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["imagePath"],
       },
     },
+    {
+      name: "kiri_done",
+      description: "Generate the final Markdown file from all captured images. Call after all kiri_open/kiri_capture cycles are complete.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          output: { type: "string", description: "Output file path. {{date}} is replaced with YYYY_MM_DD." },
+        },
+        required: ["output"],
+      },
+    },
   ],
 }));
 
@@ -194,6 +210,10 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         return { text: text.slice(0, 5000), hints };
       });
 
+      // 前のグループを保存、新しいグループを開始
+      if (currentGroup) captureHistory.push(currentGroup);
+      currentGroup = { sourceUrl: url, images: [] };
+
       return {
         content: [{
           type: "text",
@@ -228,10 +248,62 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
 
       await Promise.all(promises);
 
+      // 履歴に追加
+      if (currentGroup) currentGroup.images.push(...results);
+
       return {
         content: [{
           type: "text",
           text: JSON.stringify({ images: results, errors: errors.length ? errors : undefined }, null, 2),
+        }],
+      };
+    }
+
+    case "kiri_done": {
+      // 最後のグループを保存
+      if (currentGroup) {
+        captureHistory.push(currentGroup);
+        currentGroup = null;
+      }
+
+      let output = args.output as string;
+      const now = new Date();
+      const date = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, "0")}_${String(now.getDate()).padStart(2, "0")}`;
+      output = output.replace("{{date}}", date);
+
+      // Markdown生成
+      const lines: string[] = [];
+      for (let i = 0; i < captureHistory.length; i++) {
+        const group = captureHistory[i];
+        if (i > 0) lines.push("", "---", "");
+        for (const img of group.images) {
+          lines.push(`![](${img})`);
+        }
+        lines.push(`[Source](${group.sourceUrl})`);
+      }
+
+      const markdown = lines.join("\n") + "\n";
+
+      // ディレクトリ作成
+      const outputDir = dirname(output);
+      if (outputDir && !existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
+      writeFileSync(output, markdown);
+
+      const totalImages = captureHistory.reduce((sum, g) => sum + g.images.length, 0);
+
+      // 履歴リセット
+      captureHistory = [];
+
+      // ブラウザを閉じる
+      if (currentPage) {
+        await currentPage.context().close().catch(() => {});
+        currentPage = null;
+      }
+
+      return {
+        content: [{
+          type: "text",
+          text: `Generated: ${output}\n${captureHistory.length} sources, ${totalImages} images`,
         }],
       };
     }
