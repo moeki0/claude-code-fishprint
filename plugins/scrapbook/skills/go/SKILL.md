@@ -49,13 +49,19 @@ If `./scrapbook.json` exists, read `output`, `images`, and `instructions` from i
 
 ## Flow
 
-### Phase 0: Load config and init
+### Phase 0: Load config and init — MANDATORY, DO NOT SKIP
 
-1. Check if `./scrapbook.json` exists. If it does, read it.
-2. **Always call `init`** with the config (or defaults). This tells the server where to save images.
-   - If scrapbook.json has `"images": "gyazo"` → `init({ images: "gyazo" })`
-   - Otherwise → `init({ images: "local" })` (or with custom `localDir`)
-3. Note `output` and `instructions` from the config for use in Phase 4.
+**You MUST do all of the following before anything else:**
+
+1. Use the `Read` tool to read `./scrapbook.json`. This file controls image storage and output settings.
+2. Call `init` with the settings from scrapbook.json:
+   - `init({ images: "gyazo" })` if scrapbook.json has `"images": "gyazo"`
+   - `init({ images: "local" })` otherwise
+3. Remember `output` and `instructions` from scrapbook.json for Phase 4.
+
+If `./scrapbook.json` does not exist, call `init({ images: "local" })` with defaults.
+
+**Do NOT proceed to Phase 1 without completing Phase 0.**
 
 ### Phase 1: Browse curated media
 
