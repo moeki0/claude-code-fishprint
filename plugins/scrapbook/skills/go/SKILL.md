@@ -3,6 +3,8 @@ name: go
 description: Browse X timeline, capture interesting tweets as screenshots, and write context. Use when asked for "news", "what's happening", "timeline", or "tweets".
 user-invocable: true
 allowed-tools:
+  - WebSearch
+  - WebFetch
   - Read
   - Write
   - Bash(mkdir *)
@@ -22,7 +24,8 @@ Arguments: `$ARGUMENTS`
 3. Screenshot each tweet (auto-archive / 魚拓)
 4. Write a Markdown digest: tweet screenshots + context
 
-**Do NOT use WebSearch or WebFetch. All information comes from X only.**
+**Tweet collection is from X timeline only. Do NOT use X search — it's unreliable.**
+**WebSearch/WebFetch are used in Phase 4 for background research.**
 
 ## Theme
 
@@ -91,12 +94,12 @@ For each selected tweet, open its permalink and screenshot the tweet element.
 2. Call `kiri_capture(["article[data-testid='tweet']"], localDir)` — screenshots the tweet
 3. Repeat for each tweet
 
-### Phase 4: Write context
+### Phase 4: Research & write context
 
-For each captured tweet, write brief context based on **what you already know**. Do NOT search the web.
+For each captured tweet, research the background:
 
-- What is this about?
-- Why does it matter?
+- **WebSearch** for related context (what is this about? why does it matter?)
+- **WebFetch** to read linked articles if the tweet references one
 - If the tweet is in a foreign language, translate the key points in text
 
 ### Phase 5: Generate Markdown
@@ -124,7 +127,8 @@ Background context in 2-3 sentences.
 
 ## Rules
 
-- **No web search. No WebFetch. X only.**
+- **Never use X search** — only Following timeline + Explore/Trending
+- WebSearch/WebFetch are for background research only, not for finding tweets
 - No duplicates
 - Translate foreign tweets in the context text, not in screenshots
 - On error, skip and move on
