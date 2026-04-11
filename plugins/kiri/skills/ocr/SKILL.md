@@ -5,7 +5,7 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash(*/run.sh *)
+  - Bash(*/kiri-run.sh *)
 ---
 
 # /kiri:ocr — OCR翻訳オーバーレイ
@@ -19,7 +19,7 @@ allowed-tools:
 ### Step 1: OCR読み取り
 
 ```bash
-${CLAUDE_SKILL_DIR}/run.sh ocr "<image_path_or_url>"
+${CLAUDE_SKILL_DIR}/kiri-run.sh ocr "<image_path_or_url>"
 ```
 
 → 行ごとのテキストとバウンディングボックスがJSON出力される。
@@ -37,8 +37,8 @@ OCR結果を元に翻訳を作成：
 ### Step 3: オーバーレイ適用
 
 ```bash
-${CLAUDE_SKILL_DIR}/run.sh ocr "<image_path_or_url>" /tmp/translations.json
-${CLAUDE_SKILL_DIR}/run.sh ocr "<image_path_or_url>" /tmp/translations.json --local <dir>
+${CLAUDE_SKILL_DIR}/kiri-run.sh ocr "<image_path_or_url>" /tmp/translations.json
+${CLAUDE_SKILL_DIR}/kiri-run.sh ocr "<image_path_or_url>" /tmp/translations.json --local <dir>
 ```
 
 → 元テキストを薄い灰色で塗りつぶし、翻訳テキストをオーバーレイした画像を保存。

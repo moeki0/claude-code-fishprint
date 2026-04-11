@@ -6,7 +6,7 @@ allowed-tools:
   - WebSearch
   - Read
   - Write
-  - Bash(*/run.sh *)
+  - Bash(*/kiri-go.sh *)
   - mcp__claude-in-chrome__*
 ---
 
@@ -73,7 +73,7 @@ allowed-tools:
 厳選した各ニュースについて、解説を書くための背景を調べる。
 
 - **WebSearch** で関連情報を検索（企業の過去の動向、技術的文脈、業界への影響など）
-- **run.sh read** で関連記事の全文を読む
+- **kiri-go.sh read** で関連記事の全文を読む
 - ツイートの場合はスレッド全体、引用元、リプライの文脈も確認
 
 調査の観点：
@@ -88,7 +88,7 @@ Claude Codeがページ内容を元にセレクタと翻訳を決定する。
 
 **Step 1: ページのテキストを読み取る**
 ```bash
-${CLAUDE_SKILL_DIR}/run.sh read "<url>"
+${CLAUDE_SKILL_DIR}/kiri-go.sh read "<url>"
 ```
 
 **Step 2: 翻訳JSONを書き出し**
@@ -108,12 +108,12 @@ EOF
 
 Gyazoモード:
 ```bash
-${CLAUDE_SKILL_DIR}/run.sh "<url>" /tmp/sections.json
+${CLAUDE_SKILL_DIR}/kiri-go.sh "<url>" /tmp/sections.json
 ```
 
 ローカルモード:
 ```bash
-${CLAUDE_SKILL_DIR}/run.sh "<url>" /tmp/sections.json --local <output_dir>
+${CLAUDE_SKILL_DIR}/kiri-go.sh "<url>" /tmp/sections.json --local <output_dir>
 ```
 
 → 各要素を `element.screenshot()` で撮影。画像URL or ローカルパスが返る。
