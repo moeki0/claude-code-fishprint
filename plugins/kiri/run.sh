@@ -1,6 +1,6 @@
 #!/bin/bash
-DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$DIR"
+PLUGIN_ROOT="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")" && pwd)"
+cd "$PLUGIN_ROOT"
 
 # ユーザーのログインシェルからPATHを継承
 eval "$(${SHELL:-/bin/zsh} -lc 'echo export PATH="$PATH"' 2>/dev/null)"
