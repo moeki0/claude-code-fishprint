@@ -39,6 +39,8 @@ Arguments: `$ARGUMENTS`
 - **Any topic**: Reddit (`old.reddit.com/r/{topic}`) works as a universal curation layer
 - **X/Twitter**: if curated sites link to tweets, follow and capture them (public tweets work without login)
 
+**For global/international topics, use English-language sources only.** English sources have the highest volume, fastest updates, and best coverage for tech, science, AI, security, etc. Only use non-English sources when the topic is specifically regional (e.g. Japanese domestic policy, local events).
+
 **Do NOT use web search APIs.** Browse the sites directly via Playwright (open).
 
 ## Output
@@ -82,21 +84,25 @@ Pick **10-15 of the most relevant/interesting articles** for the theme.
 For each selected article:
 1. `open(article_url, translate=LANG)` — open the article **translated to Japanese via Google Translate**
 2. Read the translated DOM structure to understand the content
-3. Identify ALL important sections to capture — be generous, not selective:
-   - Title and lead paragraph
-   - Key arguments and insights
-   - Code examples, diagrams, data
-   - Notable quotes or conclusions
-   - Comments/discussion highlights (on HN, Lobsters, Reddit)
+3. Identify individual text-centric elements to capture. **Each capture = 1 small, focused topic.** Target:
+   - Single paragraphs (`p`)
+   - Individual list items (`li`)
+   - Single blockquotes
+   - Individual headings + their immediate paragraph
+   - Single code blocks
+   - Individual comments (on HN, Lobsters, Reddit)
+   - Do NOT capture large containers, full sections, or entire articles in one shot
 
 ### Phase 3: Capture 魚拓
 
-For each article, capture multiple sections from the **translated** page:
+**Each 魚拓 must be small and text-focused.** One paragraph, one quote, one comment = one capture. NOT a full page section.
 
-1. Identify CSS selectors for each important section
+For each article, capture many small fragments from the **translated** page:
+
+1. Identify CSS selectors for individual text elements (prefer `p`, `li`, `blockquote`, `pre`, not `div` or `section`)
 2. `capture([selector1, selector2, ...])` — screenshot multiple elements at once
 
-**Aim for 3-5 captures per article, 30-50+ total across all articles.**
+**Aim for 5-10 captures per article, 50-100+ total across all articles. More is better.**
 
 ### Phase 3.5: Follow outbound links (1-hop expansion)
 
@@ -146,7 +152,8 @@ Write the Markdown yourself. Structure:
 ## Rules
 
 - **Translate pages before capturing** — use `open(url, translate=LANG)` for articles not in the user's language
-- **Capture generously** — more is better. Aim for 30-50+ screenshots total. The user wants to consume large amounts of information
+- **Each 魚拓 = small, text-focused, 1 topic** — capture individual paragraphs, quotes, comments. Never capture large containers or full sections
+- **Capture massively** — aim for 50-100+ screenshots total. More is always better. The user wants to consume large amounts of information in small bites
 - If the original text is already in the user's language, capture without translate
 - Browse curated media sites directly — do NOT use web search APIs
 - Use Playwright via `open` / `capture` for all browsing and screenshots
