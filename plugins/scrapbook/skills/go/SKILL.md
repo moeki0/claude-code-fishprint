@@ -66,11 +66,15 @@ Collect **as many candidate article URLs as possible** (20+).
 
 ### Phase 3: Assemble final digest
 
-Use the `Write` tool to create the final Markdown file:
+Each `/scrapbook:write` call should save its section to a temporary file (e.g. `/tmp/scrapbook_section_1.md`, `/tmp/scrapbook_section_2.md`, ...).
 
-1. Add a heading: `# Scrapbook: {theme} — {date}`
-2. Concatenate all sections from Phase 2, separated by `---`
-3. Choose an appropriate output file name and location
+Then assemble the final file:
+
+```bash
+echo "# Scrapbook: {theme} — {date}" > output.md
+echo "" >> output.md
+for f in /tmp/scrapbook_section_*.md; do cat "$f" >> output.md; echo -e "\n---\n" >> output.md; done
+```
 
 ## Rules
 
