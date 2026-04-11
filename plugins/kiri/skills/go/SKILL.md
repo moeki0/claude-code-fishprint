@@ -134,19 +134,27 @@ Call `kiri_capture(selectors, localDir?)`. Just pass CSS selectors — the page 
 {
   "selectors": [
     "h1",
+    "h2:nth-of-type(1)",
+    "h2:nth-of-type(2)",
     "article p:nth-of-type(1)",
     "article p:nth-of-type(2)",
     "article p:nth-of-type(3)",
+    "article p:nth-of-type(4)",
+    "article p:nth-of-type(5)",
+    "article p:nth-of-type(6)",
     "figure:nth-of-type(1)",
+    "figure:nth-of-type(2)",
     "article img:nth-of-type(1)",
     "article img:nth-of-type(2)",
-    "blockquote"
+    "article img:nth-of-type(3)",
+    "blockquote",
+    "table"
   ],
   "localDir": "/path/to/kiri_images"
 }
 ```
 
-- **Be generous: 5-10 selectors per page**
+- **Clip as much as possible: 10-20 selectors per page. Don't hold back.**
 
 **If selectors miss, adjust and call `kiri_capture` again** — the page is still open.
 
@@ -160,30 +168,32 @@ For images with foreign-language text, call `kiri_ocr(imagePath)` to get text + 
 
 ### Phase 5: Generate Markdown
 
-Create a Markdown file at the output path. **Image-heavy. Minimal text.**
+Create a Markdown file at the output path. **Images only. No text.**
 
 ```markdown
-![](title clipping)
-![](lead paragraph clipping)
-![](photo)
-![](body text clipping)
-![](chart)
-Context note only if truly needed — one line
-→ [Source](original URL)
+![](image1)
+![](image2)
+![](image3)
+![](image4)
+![](image5)
+![](image6)
+[Source](original URL)
 
 ---
 
-![](next page title clipping)
-![](photo)
-![](body clipping)
-→ [Source](original URL)
+![](image7)
+![](image8)
+![](image9)
+![](image10)
+[Source](original URL)
 ```
 
-- **Don't write titles as text. Clip the title element as an image**
-- Stack images. Let images tell the story
+**Strict rules for output:**
+- **NO titles in text.** Title is a clipped image
+- **NO commentary or explanations.** Let images speak
+- **NO supplementary text.** Nothing between images
+- Only a `[Source](URL)` link after each topic's images
 - Separate topics with `---`
-- Text commentary only when images can't convey the context alone
-- Always include source link
 
 ## Rules
 
