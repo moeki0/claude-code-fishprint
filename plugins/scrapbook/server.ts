@@ -110,7 +110,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
             description: "CSS selectors of elements to screenshot",
           },
         },
-        required: ["sections"],
+        required: ["selectors"],
       },
     },
     {
