@@ -76,7 +76,8 @@ For recurring themes, place a config file at project root.
 **Only use the sources specified in `sources` config.** If `sources` is `["x"]`, do NOT use WebSearch. If `sources` is `["web"]`, do NOT browse X.
 
 **If `"web"` is included (default):**
-- Generate multiple search queries from the theme (different angles, both English and the user's language)
+- **Always search in English first** — English sources are broader, more up-to-date, and cover more ground. Then search in the user's language for local perspectives
+- Generate multiple search queries (different angles, synonyms, related terms)
 - Use WebSearch
 - Seek diverse sources (not just mainstream — blogs, specialist sites, social media too)
 
