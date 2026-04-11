@@ -49,13 +49,13 @@ Arguments: `$ARGUMENTS`
 
 **You MUST do all of the following before anything else:**
 
-1. Use the `Read` tool to read `./scrapbook.json`. This file controls image storage and output settings.
+1. Use the `Read` tool to read the file `scrapbook.json` **in the user's working directory** (the project root where Claude Code was launched). This is the same directory shown in `git status`. Do NOT look in plugin directories or subdirectories.
 2. Call `init` with the settings from scrapbook.json:
    - `init({ images: "gyazo" })` if scrapbook.json has `"images": "gyazo"`
    - `init({ images: "local" })` otherwise
 3. Remember `output`, `instructions`, and `images` from scrapbook.json for later phases.
 
-If `./scrapbook.json` does not exist, call `init({ images: "local" })` with defaults.
+If `scrapbook.json` does not exist in the working directory, call `init({ images: "local" })` with defaults.
 
 **Do NOT proceed to Phase 1 without completing Phase 0.**
 
