@@ -1,6 +1,6 @@
 ---
 name: go
-description: Browse X timeline, capture interesting tweets as screenshots, and write context. Use when asked for "news", "what's happening", "timeline", or "tweets".
+description: Browse X timeline, capture interesting tweets as screenshots, and write context. Use when asked for "news", "what's happening", "timeline", or "scrapbook".
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -13,53 +13,35 @@ allowed-tools:
   - mcp__claude-in-chrome__*
 ---
 
-# Scrapbook — X timeline digest with tweet screenshots
+# Scrapbook — What's happening on X right now
 
 Arguments: `$ARGUMENTS`
 
 ## What Scrapbook does
 
 1. Browse the user's X timeline (Following + Trending)
-2. Pick interesting tweets matching the theme
+2. Pick the most interesting/noteworthy tweets
 3. Screenshot each tweet (auto-archive / 魚拓)
-4. Write a Markdown digest: tweet screenshots + context
+4. Research background via WebSearch
+5. Write a Markdown digest: tweet screenshots + context
+
+**No theme filtering. Capture whatever is interesting right now.**
 
 **Tweet collection is from X timeline only. Do NOT use X search — it's unreliable.**
-**WebSearch/WebFetch are used in Phase 4 for background research.**
+**WebSearch/WebFetch are used for background research only.**
 
-## Theme
+## Output
 
-Priority:
-1. **If arguments are provided** → use as theme (e.g., `/scrapbook:go AI`)
-2. **If `./scrapbook.json` exists** → read theme, output, images from it
-3. **Neither** → collect all interesting tweets regardless of theme
-
-Defaults when using arguments only:
 - `output`: `scrapbook_{{date}}.md` (current directory)
 - `images`: `local` (`./scrapbook_images/`)
 
-## scrapbook.json (optional)
-
-```json
-{
-  "name": "AI News",
-  "theme": "AI, LLM, machine learning developments",
-  "output": "ai_news_{{date}}.md",
-  "images": "local",
-  "instructions": "Write in Japanese."
-}
-```
-
-- `images`: `"gyazo"` or `"local"`
-- `instructions` → Custom directives applied to all phases
-
-**If `./scrapbook.json` exists, always follow `instructions`.**
+If `./scrapbook.json` exists, read `output`, `images`, and `instructions` from it.
 
 ## Flow
 
-### Phase 0: Load config
+### Phase 0: Load config (optional)
 
-**First, check if `./scrapbook.json` exists.** If it does, read it with the Read tool.
+Check if `./scrapbook.json` exists. If it does, read it. Only `output`, `images`, and `instructions` are used. No theme.
 
 ### Phase 1: Collect tweets from X
 
@@ -84,7 +66,7 @@ Merge results from A and B.
 
 ### Phase 2: Select
 
-Pick **5-10 tweets** that match the theme. Aim for diversity.
+Pick **5-10 of the most interesting tweets**. No theme filter — just pick what's noteworthy, surprising, important, or funny.
 
 ### Phase 3: Capture tweets
 
@@ -119,9 +101,9 @@ Background context in 2-3 sentences.
 ```
 
 **Rules for output:**
-- `##` heading: brief topic label (not the tweet text)
+- `##` heading: brief topic label
 - Tweet screenshot
-- 2-3 sentences of context from your knowledge
+- 2-3 sentences of context
 - Link to original tweet
 - `---` between topics
 

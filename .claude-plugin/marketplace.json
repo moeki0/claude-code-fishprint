@@ -10,7 +10,7 @@
       "name": "scrapbook",
       "displayName": "Scrapbook",
       "description": "Browse X timeline, screenshot tweets, and write context digests",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "source": "./plugins/scrapbook"
     }
   ]
