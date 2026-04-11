@@ -38,7 +38,7 @@ Read the DOM structure returned by `open`. **Capture the smallest possible eleme
 Target individual text elements using **specific CSS selectors**:
 
 - Single paragraphs: `p`, `p:nth-of-type(3)`, `article > p:first-of-type`
-- Individual list items: `li`, `ul > li:nth-child(2)`
+- Lists as a whole: `ul`, `ol` (keep the list together — do NOT split into individual `li`)
 - Single blockquotes: `blockquote`
 - Individual headings: `h1`, `h2`, `h3`
 - Single code blocks: `pre`, `code`
