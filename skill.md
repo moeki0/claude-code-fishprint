@@ -6,13 +6,13 @@ allowed-tools:
   - WebSearch
   - Read
   - Write
-  - Bash(~/.claude/skills/kiri/run.sh *)
+  - Bash(${CLAUDE_SKILL_DIR}/run.sh *)
+  - Bash(${CLAUDE_SKILL_DIR}/setup.sh)
   - mcp__claude-in-chrome__*
 ---
 
 ```!
-cd ${CLAUDE_SKILL_DIR}
-[ -d node_modules ] || (bun install && bunx playwright install chromium) >&2
+${CLAUDE_SKILL_DIR}/setup.sh
 ```
 
 # Kiri — Webコンテンツを切り取り、翻訳し、まとめる
@@ -93,7 +93,7 @@ Claude Codeがページ内容を元にセレクタと翻訳を決定する。
 
 **Step 1: ページのテキストを読み取る**
 ```bash
-~/.claude/skills/kiri/run.sh read "<url>"
+${CLAUDE_SKILL_DIR}/run.sh read "<url>"
 ```
 
 **Step 2: 翻訳JSONを書き出し**
@@ -113,12 +113,12 @@ EOF
 
 Gyazoモード:
 ```bash
-~/.claude/skills/kiri/run.sh "<url>" /tmp/sections.json
+${CLAUDE_SKILL_DIR}/run.sh "<url>" /tmp/sections.json
 ```
 
 ローカルモード:
 ```bash
-~/.claude/skills/kiri/run.sh "<url>" /tmp/sections.json --local <output_dir>
+${CLAUDE_SKILL_DIR}/run.sh "<url>" /tmp/sections.json --local <output_dir>
 ```
 
 → 各要素を `element.screenshot()` で撮影。画像URL or ローカルパスが返る。
