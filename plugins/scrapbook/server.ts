@@ -14,19 +14,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-// --- Config (scrapbook.json) ---
-type Config = { output?: string; images?: "gyazo" | "local"; instructions?: string };
-function loadConfig(): Config {
-  try {
-    const raw = readFileSync("scrapbook.json", "utf-8");
-    return JSON.parse(raw) as Config;
-  } catch { return {}; }
-}
-const config = loadConfig();
+// --- Config ---
+type Config = { images?: "gyazo" | "local"; localDir?: string };
+let config: Config = { images: "local", localDir: "./scrapbook_images" };
 
 function resolveLocalDir(): string | undefined {
   if (config.images === "gyazo") return undefined;
-  return "./scrapbook_images";
+  return config.localDir || "./scrapbook_images";
 }
 
 // --- Browser ---
@@ -81,6 +75,17 @@ const mcp = new Server({ name: "scrapbook", version: "0.2.0" }, { capabilities: 
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
+    {
+      name: "init",
+      description: "Initialize session config. Call once at the start with settings from scrapbook.json. Must be called before capture if using Gyazo.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          images: { type: "string", enum: ["gyazo", "local"], description: "Image storage: 'gyazo' or 'local'" },
+          localDir: { type: "string", description: "Local directory for images (only when images='local')" },
+        },
+      },
+    },
     {
       name: "open",
       description: "Open a web page and return its text content with DOM structure hints. Browser stays alive for subsequent captures. Set translate to auto-translate the page via Google Translate before capture.",
@@ -141,6 +146,14 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
   const args = (req.params.arguments ?? {}) as Record<string, unknown>;
 
   switch (req.params.name) {
+    case "init": {
+      if (args.images) config.images = args.images as "gyazo" | "local";
+      if (args.localDir) config.localDir = args.localDir as string;
+      return {
+        content: [{ type: "text", text: `Config: images=${config.images}, localDir=${config.localDir || "(gyazo)"}` }],
+      };
+    }
+
     case "open": {
       const url = args.url as string;
       const translate = args.translate as string | undefined;
