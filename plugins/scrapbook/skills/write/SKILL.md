@@ -71,4 +71,5 @@ Narrative explaining what this source adds to the picture.
 - `---` between major topics
 - Link to original source at the end of each section
 - **Include as many citations as possible** — the more evidence, the better
+- **Embed important images from articles** (graphs, benchmark tables, architecture diagrams, charts) using their original URL: `![description](https://example.com/image.png)`. Only include images that add information text cannot convey. Do not embed logos, avatars, decorative images, or ads.
 - If `instructions` from scrapbook.json are provided, follow them

@@ -73,6 +73,7 @@ Extract **verbatim quotes** from the original text — the exact words as writte
 - Notable statements and conclusions
 - Data, numbers, benchmarks
 - Community comments and reactions (on HN, Lobsters, Reddit)
+- **Important image URLs** (graphs, charts, diagrams, benchmark tables) — note the `src` from `img` tags in the DOM
 
 **Also follow outbound links** to primary sources (papers, repos, official docs) and extract quotes from those too.
 
