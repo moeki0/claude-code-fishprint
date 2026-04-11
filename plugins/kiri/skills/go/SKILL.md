@@ -119,26 +119,25 @@ Use these hints to decide selectors. No guessing.
 
 **Step 2: Capture**
 
-Call `kiri_capture(sections, localDir?)`. Since the page is already translated, just clip — no `translated` text needed.
+Call `kiri_capture(selectors, localDir?)`. Just pass CSS selectors — the page is already translated.
 
 ```json
 {
-  "sections": [
-    { "selector": "h1", "translated": "" },
-    { "selector": "article p:nth-of-type(1)", "translated": "" },
-    { "selector": "article p:nth-of-type(2)", "translated": "" },
-    { "selector": "article p:nth-of-type(3)", "translated": "" },
-    { "selector": "figure:nth-of-type(1)", "translated": "" },
-    { "selector": "article img:nth-of-type(1)", "translated": "" },
-    { "selector": "blockquote", "translated": "" }
+  "selectors": [
+    "h1",
+    "article p:nth-of-type(1)",
+    "article p:nth-of-type(2)",
+    "article p:nth-of-type(3)",
+    "figure:nth-of-type(1)",
+    "article img:nth-of-type(1)",
+    "article img:nth-of-type(2)",
+    "blockquote"
   ],
   "localDir": "/path/to/kiri_images"
 }
 ```
 
-- `translated` can still be used for manual translation override if Google Translate is not used
-- `capture: false` → inject translation but don't screenshot
-- **Be generous: 5-10 clippings per page**
+- **Be generous: 5-10 selectors per page**
 
 **If selectors miss, adjust and call `kiri_capture` again** — the page is still open.
 

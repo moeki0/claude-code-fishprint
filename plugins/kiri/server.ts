@@ -79,21 +79,14 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "kiri_capture",
-      description: "Capture screenshots of elements on the currently open page. Injects translations before capture. Call kiri_open first.",
+      description: "Capture screenshots of elements on the currently open page. Call kiri_open first. Pass an array of CSS selectors.",
       inputSchema: {
         type: "object",
         properties: {
-          sections: {
+          selectors: {
             type: "array",
-            items: {
-              type: "object",
-              properties: {
-                selector: { type: "string" },
-                translated: { type: "string", description: "Translation to inject. Empty = no injection." },
-                capture: { type: "boolean", description: "Set false to inject translation only, skip screenshot. Default true." },
-              },
-              required: ["selector", "translated"],
-            },
+            items: { type: "string" },
+            description: "CSS selectors of elements to screenshot",
           },
           localDir: { type: "string", description: "Local directory to save images. Omit to use Gyazo." },
         },
@@ -214,35 +207,22 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         return { content: [{ type: "text", text: "Error: No page open. Call kiri_open first." }] };
       }
 
-      const sections = args.sections as { selector: string; translated: string; capture?: boolean }[];
+      const selectors = args.selectors as string[];
       const localDir = args.localDir as string | undefined;
 
-      // 翻訳注入
-      await currentPage.evaluate((secs) => {
-        for (const sec of secs) {
-          try {
-            const el = document.querySelector(sec.selector);
-            if (el && sec.translated) el.textContent = sec.translated;
-          } catch {}
-        }
-      }, sections);
-
-      await currentPage.waitForTimeout(300);
-
       // スクショ + 保存を並列
-      const captures = sections.filter(s => s.capture !== false);
       const results: string[] = [];
       const errors: string[] = [];
 
-      const promises = captures.map(async (sec) => {
+      const promises = selectors.map(async (selector) => {
         try {
-          const el = await currentPage!.$(sec.selector);
-          if (!el) { errors.push(`Not found: ${sec.selector}`); return; }
+          const el = await currentPage!.$(selector);
+          if (!el) { errors.push(`Not found: ${selector}`); return; }
           const screenshot = await el.screenshot();
           const saved = await saveImage(Buffer.from(screenshot), currentUrl, localDir);
           results.push(saved);
         } catch (e) {
-          errors.push(`Failed ${sec.selector}: ${e}`);
+          errors.push(`Failed ${selector}: ${e}`);
         }
       });
 
