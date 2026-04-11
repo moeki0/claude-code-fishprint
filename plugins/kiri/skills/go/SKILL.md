@@ -6,7 +6,6 @@ allowed-tools:
   - WebSearch
   - Read
   - Write
-  - Bash(kiri-read *)
   - Bash(kiri-capture *)
   - Bash(kiri-ocr *)
   - Bash(mkdir *)
@@ -96,7 +95,7 @@ Aim for diversity — don't pick articles that all say the same thing from diffe
 Research background for each topic. The goal is **not** to write long commentary — it's to decide **what to clip**.
 
 - **WebSearch** for related context
-- **WebFetch** to read article text (faster than kiri-read — no browser needed). Use kiri-read only if WebFetch fails
+- **WebFetch** to read article text (no browser needed, fast)
 - For tweets, check the full thread, quoted tweets, and replies
 
 ### Phase 4: Capture (per URL)
@@ -106,9 +105,8 @@ Research background for each topic. The goal is **not** to write long commentary
 Claude Code decides selectors and translations based on page content. Aim for 5–10 clippings per page.
 
 **Step 1: Read page text**
-```bash
-kiri-read "<url>"
-```
+
+Use **WebFetch** to read the page content. No browser needed — fast.
 
 **Step 2: Write translation JSON (use the Write tool, not cat)**
 

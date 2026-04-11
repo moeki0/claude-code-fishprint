@@ -39,7 +39,12 @@ export async function openPage(pageUrl: string, width = 1280): Promise<{ browser
     userAgent: UA,
   });
   const page = await context.newPage();
-  await page.goto(pageUrl, { waitUntil: "networkidle", timeout: 60000 });
+  await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+  // 動的コンテンツの描画を最大2秒待つ
+  await Promise.race([
+    page.waitForLoadState("networkidle"),
+    page.waitForTimeout(2000),
+  ]);
   return { browser, page };
 }
 
