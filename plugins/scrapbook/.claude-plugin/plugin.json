@@ -1,6 +1,6 @@
 {
   "name": "scrapbook",
-  "description": "Web content clipper with translated screenshots and OCR for Claude Code",
+  "description": "Browse X timeline, screenshot tweets, and write context digests",
   "version": "1.1.0",
-  "keywords": ["web", "screenshot", "translation", "ocr", "newsletter"]
+  "keywords": ["x", "twitter", "tweets", "screenshot", "archive", "digest"]
 }
