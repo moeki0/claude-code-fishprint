@@ -35,30 +35,34 @@ allowed-tools:
   "theme": "AI・LLM・機械学習の最新動向",
   "output": "wiki/ai_news_{{date}}.md",
   "images": "gyazo",
+  "sources": ["web", "x"],
   "instructions": "解説は技術者向けに書く。Obsidianのwiki link形式を使う。"
 }
 ```
 
-- `images: "gyazo"` → Gyazoにアップロード（キーチェーンにトークンが必要）
-- `images: "local"` → outputと同じディレクトリに画像を保存
+- `images`: `"gyazo"` or `"local"`。Gyazoはキーチェーンにトークンが必要
+- `sources`: 情報収集に使うソースの配列。デフォルト`["web"]`
+  - `"web"` → WebSearchで検索
+  - `"x"` → Chrome（claude-in-chrome MCP）でXタイムラインを巡回。Chrome拡張が必要
 - `instructions` → すべてのフェーズに適用されるカスタム指示
 
 **`./kiri.json`がある場合、`instructions`の内容に必ず従うこと。**
 
 ## フロー
 
-### Phase 1: ニュース発見
+### Phase 1: 情報収集
 
-**Chrome で X タイムラインを巡回:**
+`sources`の設定に応じて情報を集める。
+
+**`"web"`が含まれる場合（デフォルト）:**
+- WebSearchでthemeに基づいた検索クエリを生成して検索
+
+**`"x"`が含まれる場合（claude-in-chrome MCPが必要）:**
 1. `tabs_context_mcp` で現在のタブを確認
 2. `tabs_create_mcp` で `https://x.com/home` を開く
 3. `javascript_tool` でツイートのURL・テキストを抽出
 4. theme に関連するツイート・リンクを拾う
 5. 必要に応じてスクロールして追加取得
-
-**WebSearch で補完:**
-- themeに基づいた検索クエリを生成して検索
-- Chrome で見つけられなかった話題を補完
 
 ### Phase 2: 厳選
 
