@@ -1,5 +1,5 @@
 {
-  "name": "kiri",
+  "name": "scrapbook",
   "description": "Web content clipper with translated screenshots and OCR for Claude Code",
   "owner": {
     "name": "moeki",
@@ -7,7 +7,7 @@
   },
   "plugins": [
     {
-      "name": "kiri",
+      "name": "scrapbook",
       "displayName": "Kiri",
       "description": "Webコンテンツを切り取り、翻訳し、まとめる。翻訳スクショ・OCR翻訳オーバーレイ・Markdown生成。",
       "version": "1.0.0",

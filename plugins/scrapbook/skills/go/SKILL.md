@@ -29,14 +29,14 @@ Arguments: `$ARGUMENTS`
 
 Priority:
 1. **If arguments are provided** → use as theme (e.g., `/kiri:go AI`)
-2. **If `./kiri.json` exists** → read theme, output, images from it
+2. **If `./scrapbook.json` exists** → read theme, output, images from it
 3. **Neither** → ask the user
 
 Defaults when using arguments only:
 - `output`: `kiri_{{date}}.md` (current directory)
 - `images`: `local` (`./kiri_images/`)
 
-## kiri.json (optional)
+## scrapbook.json (optional)
 
 ```json
 {
@@ -51,13 +51,13 @@ Defaults when using arguments only:
 - `images`: `"gyazo"` or `"local"`
 - `instructions` → Custom directives applied to all phases
 
-**If `./kiri.json` exists, always follow `instructions`.**
+**If `./scrapbook.json` exists, always follow `instructions`.**
 
 ## Flow
 
 ### Phase 0: Load config
 
-**First, check if `./kiri.json` exists.** If it does, read it with the Read tool.
+**First, check if `./scrapbook.json` exists.** If it does, read it with the Read tool.
 
 ### Phase 1: Collect tweets from X
 

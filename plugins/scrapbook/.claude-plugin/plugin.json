@@ -1,5 +1,5 @@
 {
-  "name": "kiri",
+  "name": "scrapbook",
   "description": "Web content clipper with translated screenshots and OCR for Claude Code",
   "version": "1.0.0",
   "keywords": ["web", "screenshot", "translation", "ocr", "newsletter"]
