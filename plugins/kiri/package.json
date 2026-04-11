@@ -1,9 +1,14 @@
 {
-  "name": "web-highlight-gyazo",
+  "name": "kiri",
+  "version": "0.1.0",
   "private": true,
+  "bin": {
+    "kiri-read": "./skills/read/kiri-read.sh",
+    "kiri-capture": "./skills/capture/kiri-capture.sh",
+    "kiri-ocr": "./skills/ocr/kiri-ocr.sh"
+  },
   "dependencies": {
     "playwright": "^1.52.0",
-    "sharp": "^0.34.5",
-    "tesseract.js": "6"
+    "sharp": "^0.34.5"
   }
 }

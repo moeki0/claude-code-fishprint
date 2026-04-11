@@ -6,9 +6,9 @@ allowed-tools:
   - WebSearch
   - Read
   - Write
-  - Bash(*/kiri-read.sh *)
-  - Bash(*/kiri-capture.sh *)
-  - Bash(*/kiri-ocr.sh *)
+  - Bash(kiri-read *)
+  - Bash(kiri-capture *)
+  - Bash(kiri-ocr *)
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
@@ -79,7 +79,7 @@ allowed-tools:
 厳選した各ニュースについて、解説を書くための背景を調べる。
 
 - **WebSearch** で関連情報を検索（企業の過去の動向、技術的文脈、業界への影響など）
-- **kiri-read.sh** で関連記事の全文を読む
+- **kiri-read** で関連記事の全文を読む
 - ツイートの場合はスレッド全体、引用元、リプライの文脈も確認
 
 調査の観点：
@@ -94,7 +94,7 @@ Claude Codeがページ内容を元にセレクタと翻訳を決定する。
 
 **Step 1: ページのテキストを読み取る**
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-read.sh "<url>"
+kiri-read "<url>"
 ```
 
 **Step 2: 翻訳JSONを書き出し（Writeツールを使う。catは使わない）**
@@ -114,12 +114,12 @@ Writeツールで `/tmp/sections.json` を作成する：
 
 Gyazoモード:
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-capture.sh "<url>" /tmp/sections.json
+kiri-capture "<url>" /tmp/sections.json
 ```
 
 ローカルモード:
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-capture.sh "<url>" /tmp/sections.json --local <output_dir>
+kiri-capture "<url>" /tmp/sections.json --local <output_dir>
 ```
 
 → 各要素を `element.screenshot()` で撮影。画像URL or ローカルパスが返る。
@@ -140,11 +140,11 @@ ${CLAUDE_SKILL_DIR}/kiri-capture.sh "<url>" /tmp/sections.json --local <output_d
 
 英語テキストを含む画像はOCRで翻訳オーバーレイも検討する：
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-ocr.sh <image_path>
+kiri-ocr <image_path>
 ```
 → OCR結果を元に翻訳JSONを作成し、オーバーレイを適用：
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-ocr.sh <image_path> /tmp/translations.json
+kiri-ocr <image_path> /tmp/translations.json
 ```
 
 ### Phase 5: Markdownページ生成
