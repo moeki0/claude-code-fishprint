@@ -85,6 +85,7 @@ Invoke `/scrapbook:write` with the collected quotes and source URLs. The write s
 
 - **For global/international topics, use English-language sources only**
 - **Citations must be verbatim** — copy the exact original text, do not paraphrase or translate quotes
+- **NEVER use WebSearch or WebFetch tools.** All browsing must go through the `open` MCP tool.
 - **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only.
 - No duplicates
 - On error, skip and move on
