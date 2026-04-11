@@ -1,6 +1,6 @@
 {
   "name": "scrapbook",
-  "description": "Browse curated media, capture text fragments as screenshots (魚拓) with translations",
+  "description": "Browse the web, collect verbatim quotes, and write citation-driven digests",
   "owner": {
     "name": "moeki",
     "email": "hi@moeki.org"
@@ -9,8 +9,8 @@
     {
       "name": "scrapbook",
       "displayName": "Scrapbook",
-      "description": "Browse curated media, capture text fragments as screenshots (魚拓) with translations",
-      "version": "1.8.0",
+      "description": "Browse the web, collect verbatim quotes, and write citation-driven digests",
+      "version": "2.0.0",
       "source": "./plugins/scrapbook"
     }
   ]

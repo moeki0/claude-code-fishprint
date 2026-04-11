@@ -1,33 +1,31 @@
 ---
 name: go
-description: Browse curated media (Hacker News, etc.), capture translated screenshots (魚拓) in bulk. Use when asked for "news", "what's happening", "scrapbook", or to research a topic.
+description: Browse the web, collect quotes, and write a text-driven digest with original-language citations. Use when asked for "news", "what's happening", "scrapbook", or to research a topic.
 user-invocable: true
 allowed-tools:
   - Read
   - Write
   - mcp__scrapbook__*
-  - Skill(scrapbook:capture)
   - Skill(scrapbook:write)
 ---
 
-# Scrapbook — Web 魚拓 with Translation
+# Scrapbook — Web Research & Citation Digest
 
 Arguments: `$ARGUMENTS`
 
 ## What Scrapbook does
 
-1. Browse curated media sites for a given theme/topic
-2. Collect candidate article URLs
-3. Hand off to `/scrapbook:capture` to open, translate, and screenshot each article
-4. Hand off to `/scrapbook:write` to generate the Markdown digest
+1. Browse curated media sites and the web for a given theme/topic
+2. Read articles, extract important quotes verbatim
+3. Hand off to `/scrapbook:write` to generate a text-driven Markdown digest
 
-**Goal: produce a single page packed with information. Quantity matters. Capture aggressively.**
+**Output format: narrative text in the user's language, with blockquote citations in the original language (魚拓).** No screenshots, no images.
 
-**Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Use that language code for all subsequent steps.**
+**Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Write all narrative text in that language. Keep all citations in their original language.**
 
 ## Sources
 
-**Choose curated media sites appropriate for the theme.** Do not rely on a fixed list — pick sources where the topic is actively discussed. Examples:
+**Choose sources appropriate for the theme.** Do not rely on a fixed list — pick sources where the topic is actively discussed. Examples:
 
 - **Tech general**: Hacker News (`news.ycombinator.com`, `hn.algolia.com/?q=QUERY`), Lobsters (`lobste.rs`)
 - **AI/ML**: /r/MachineLearning, /r/LocalLLaMA, Papers With Code
@@ -41,48 +39,52 @@ Arguments: `$ARGUMENTS`
 
 **For global/international topics, use English-language sources only.** English sources have the highest volume, fastest updates, and best coverage for tech, science, AI, security, etc. Only use non-English sources when the topic is specifically regional (e.g. Japanese domestic policy, local events).
 
-**Finding sources:** Use DuckDuckGo via Playwright to discover good pages for any topic. Open `https://duckduckgo.com/?q=QUERY` with `open`, read the results, and follow links to quality sources. This works for any theme — not just tech. Also try Wikipedia as a starting point and follow its references for well-sourced material.
+**Finding sources:** Use DuckDuckGo via `open("https://duckduckgo.com/?q=QUERY")` to discover good pages for any topic. Also try Wikipedia as a starting point and follow its references.
 
 ## Flow
 
-### Phase 0: Load config and init — MANDATORY, DO NOT SKIP
+### Phase 0: Load config — MANDATORY, DO NOT SKIP
 
-**You MUST do all of the following before anything else:**
+**You MUST do the following before anything else:**
 
 1. Use the `Read` tool to read the file `scrapbook.json` **in the user's working directory** (the project root where Claude Code was launched). This is the same directory shown in `git status`. Do NOT look in plugin directories or subdirectories.
-2. Call `init` with the settings from scrapbook.json:
-   - `init({ images: "gyazo" })` if scrapbook.json has `"images": "gyazo"`
-   - `init({ images: "local" })` otherwise
-3. Remember `output`, `instructions`, and `images` from scrapbook.json for later phases.
+2. Remember `output` and `instructions` from scrapbook.json for later.
 
-If `scrapbook.json` does not exist in the working directory, call `init({ images: "local" })` with defaults.
+If `scrapbook.json` does not exist, use defaults (`output`: `scrapbook_{{date}}.md`).
 
 **Do NOT proceed to Phase 1 without completing Phase 0.**
 
-### Phase 1: Browse curated media
+### Phase 1: Browse & collect
 
-Use `open` (without translate) to browse the index/listing pages.
+Use `open(url)` to browse sites. Read the DOM structure to find interesting posts and articles.
 
-1. Choose as many curated media sites as possible for the theme — the more sources, the better
-2. Browse their front pages and/or search for the theme
-3. Read the DOM structure returned by `open` to find interesting posts related to the theme
-4. Follow links to source articles that look promising
+1. Choose as many sources as possible for the theme
+2. Browse front pages and/or search for the theme
+3. Follow links to source articles
 
-Collect **as many candidate article URLs as possible** (20+) before proceeding. More sources = better coverage.
+Collect **as many candidate article URLs as possible** (20+).
 
-### Phase 2: Capture
+### Phase 2: Read & extract quotes
 
-For each candidate article, invoke `/scrapbook:capture` with the article URL and language code. The capture skill handles opening, translating, and screenshotting.
+For each interesting article, use `open(url)` to read the full content.
+
+Extract **verbatim quotes** from the original text — the exact words as written. These are the 魚拓 (citations). Collect:
+- Key arguments and insights
+- Notable statements and conclusions
+- Data, numbers, benchmarks
+- Community comments and reactions (on HN, Lobsters, Reddit)
+
+**Also follow outbound links** to primary sources (papers, repos, official docs) and extract quotes from those too.
 
 ### Phase 3: Write
 
-Invoke `/scrapbook:write` with the output path, theme, date, language, images directory, and any instructions from scrapbook.json. The write skill generates a **text-driven article** where screenshots and prose alternate — text explains the narrative, screenshots serve as evidence.
+Invoke `/scrapbook:write` with the collected quotes and source URLs. The write skill generates the final Markdown.
 
 ## Rules
 
 - **For global/international topics, use English-language sources only**
-- Browse curated media sites directly — do NOT use web search APIs
-- **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only. Do not write or execute scripts.
+- **Citations must be verbatim** — copy the exact original text, do not paraphrase or translate quotes
+- **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only.
 - No duplicates
 - On error, skip and move on
-- If `$ARGUMENTS` is empty, capture whatever is interesting on major tech curation sites right now
+- If `$ARGUMENTS` is empty, cover whatever is interesting on major tech curation sites right now

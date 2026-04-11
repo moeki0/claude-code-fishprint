@@ -1,97 +1,74 @@
 ---
 name: write
-description: Generate a Markdown digest from captured 魚拓 screenshots. Called by /scrapbook:go after capture phase.
+description: Generate a text-driven Markdown digest with original-language citations. Called by /scrapbook:go after research phase.
 user-invocable: true
 allowed-tools:
   - Read
   - Write
 ---
 
-# /scrapbook:write — Generate Markdown digest
+# /scrapbook:write — Generate citation digest
 
-Arguments: `$ARGUMENTS` (output path, theme, date, language)
+Arguments: `$ARGUMENTS` (output path, theme, date, language, collected quotes)
 
 ## What this does
 
-Write a text-driven article that weaves 魚拓 screenshots into the narrative as evidence. The text tells the story; the screenshots prove it.
+Write a text-driven article in the user's language, embedding verbatim citations from original sources as blockquotes. The narrative explains and contextualizes; the blockquotes prove it with the original words.
 
-## Flow
-
-### 1. Parse arguments
-
-Arguments are passed as key=value pairs or free text:
-- `output`: file path (e.g. `scrapbook_2026_04_11.md`). `{{date}}` is replaced with `YYYY_MM_DD`.
-- `theme`: the topic
-- `lang`: language for headings and text
-- `images`: directory or URL prefix where screenshots were saved
-- `instructions`: any custom directives from scrapbook.json
-
-### 2. Gather captured images
-
-Use `ls` on the images directory (e.g. `./scrapbook_images/`) to list all captured screenshots. The caller should also provide context about which images belong to which article and what each screenshot contains.
-
-### 3. Write Markdown
-
-Write the file using the `Write` tool. **The output is a text-driven article, not an image gallery.** Text and screenshots alternate — text explains, screenshots prove.
+## Structure
 
 ```markdown
 # Scrapbook: {theme} — {date}
 
-## Article title
+## Topic or article title (in user's language)
 
-This article argues that LLM agents need better memory systems.
-The author identifies three main failure modes:
+Narrative text explaining the context and significance in the user's language.
+What happened, why it matters, what the key points are.
 
-![](screenshot_temporal_error.png)
+> Verbatim quote from the original source in its original language.
+> Copied exactly as written — not paraphrased, not translated.
+>
+> — Author/Source name
 
-The first is temporal errors — LLMs struggle with time-series reasoning,
-often confusing the order of events. The author gives a concrete example
-from their production system where an agent "remembered" a meeting
-that hadn't happened yet.
+Further narrative connecting this quote to the next point.
+Analysis, context, implications — all in the user's language.
 
-![](screenshot_priority_error.png)
+> Another verbatim quote supporting or contrasting the point.
+> Multiple paragraphs of the original text if needed.
+>
+> — Author/Source name
 
-Second, priority miscalibration. Early in a session, agents can't tell
-what matters. They save trivial details and miss critical context.
-This gets worse as memory accumulates.
+### Sub-topic or referenced primary source
 
-![](screenshot_factual_error.png)
+Narrative explaining what this source adds to the picture.
 
-Third, plain factual errors. The author found that Claude Code's memory
-summaries exhibited all three failure types, and proposes a hybrid
-approach using structured metadata alongside free-text memory.
+> Quote from the primary source (paper, official blog, etc.)
+>
+> — Source name
 
 → [Source](https://example.com/article)
 
 ---
 
-## Next article title
-
-The discussion picks up from a different angle...
-
-![](screenshot_hn_comment.png)
-
-A top HN commenter pushes back on the premise, pointing out that...
-
-![](screenshot_counterpoint.png)
+## Next topic
 
 ...
-
-→ [Source](https://news.ycombinator.com/item?id=...)
 
 ---
 ```
 
 ## Rules for output
 
-- **Text drives the narrative, screenshots are evidence.** Never put screenshots back-to-back without text between them.
-- Write in the user's language. Explain what each screenshot shows and why it matters.
-- Text between screenshots should:
-  - Summarize or contextualize what the screenshot contains
-  - Connect it to the broader argument or theme
+- **Narrative text in the user's language, citations in the original language.** This is the core format.
+- **Citations are verbatim blockquotes** — exact original text, never paraphrased or translated. Include `— Author/Source` attribution.
+- **Text drives the narrative, citations are evidence.** Never stack blockquotes without narrative text between them.
+- Narrative text between citations should:
+  - Explain what the citation says (for readers who don't read the original language)
+  - Contextualize why it matters
+  - Connect it to the broader theme
   - Transition to the next point
-- `##` heading: article title in user's language
-- `---` between articles
-- Link to original source at the end of each article section
-- Include as many screenshots as possible — but always with connecting text
+- `##` heading: topic title in user's language
+- `---` between major topics
+- Link to original source at the end of each section
+- **Include as many citations as possible** — the more evidence, the better
 - If `instructions` from scrapbook.json are provided, follow them
