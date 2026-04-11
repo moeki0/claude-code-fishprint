@@ -11,13 +11,13 @@ allowed-tools:
   - mcp__claude-in-chrome__*
 ---
 
-```!
-${CLAUDE_SKILL_DIR}/setup.sh
-```
-
 # Kiri — Webコンテンツを切り取り、翻訳し、まとめる
 
 ./kiri.jsonの`theme`に基づいてWebから情報を収集し、背景を調査し、翻訳スクショ付きのMarkdownページを生成する。
+
+## セットアップ確認
+
+**最初に `${CLAUDE_SKILL_DIR}/setup.sh` を実行して依存関係を確認すること。**
 
 ## 初回セットアップ
 
