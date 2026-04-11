@@ -3,7 +3,7 @@ name: read
 description: WebページのテキストをPlaywrightで読み取る。「ページ読んで」「記事の内容を取得」と言った時に使う。
 user-invocable: true
 allowed-tools:
-  - Bash(${CLAUDE_SKILL_DIR}/run.sh *)
+  - Bash(*/run.sh *)
 ---
 
 # /kiri:read — Webページのテキスト読み取り

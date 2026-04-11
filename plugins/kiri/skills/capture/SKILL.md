@@ -5,7 +5,7 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash(${CLAUDE_SKILL_DIR}/run.sh *)
+  - Bash(*/run.sh *)
 ---
 
 # /kiri:capture — 翻訳スクショ

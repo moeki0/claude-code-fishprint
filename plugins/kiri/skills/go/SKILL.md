@@ -6,7 +6,7 @@ allowed-tools:
   - WebSearch
   - Read
   - Write
-  - Bash(${CLAUDE_SKILL_DIR}/run.sh *)
+  - Bash(*/run.sh *)
   - mcp__claude-in-chrome__*
 ---
 
