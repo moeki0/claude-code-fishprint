@@ -107,7 +107,7 @@ From the candidates, **select the ~8 strongest as primary topics** — those wit
 
 ### Phase 2: Spawn one subagent per topic, in parallel
 
-For each topic, spawn a **Task (general-purpose subagent)** via the `Task` tool. Subagents run **concurrently** — with ~8 topics, dispatch **all Tasks in a single message** for maximum parallelism. If the list exceeds ~10, wave them in groups of 8.
+For each topic, spawn a **Task** via the `Task` tool, using the `fishprint-worker` agent. Subagents run **concurrently** — with ~8 topics, dispatch **all Tasks in a single message** for maximum parallelism. If the list exceeds ~10, wave them in groups of 8.
 
 **Task prompt template** (self-contained — the subagent does not see this conversation):
 
