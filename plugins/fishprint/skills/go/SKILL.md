@@ -243,9 +243,24 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 
 ### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 
-1. Use the `Read` tool to read each `section_<N>.md` file from `sectionDir` in numeric order.
-2. Compose the full document: preamble + sections joined by `\n\n---\n\n` + appendix.
-3. Write to the output file with the `Write` tool.
+Write preamble and appendix to temp files, then call the assemble script:
+
+```bash
+PLUGIN_BIN=$(ls -d ~/.claude/plugins/cache/fishprint/fishprint/*/bin 2>/dev/null | head -1)
+
+# Write preamble to temp file
+cat > /tmp/fishprint_preamble.md << 'PREAMBLE'
+<preamble content>
+PREAMBLE
+
+# Write appendix to temp file (if any)
+cat > /tmp/fishprint_appendix.md << 'APPENDIX'
+<appendix content>
+APPENDIX
+
+"$PLUGIN_BIN/assemble.sh" <sectionDir> <output> /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
+rm -f /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
+```
 
 **Output filename** — derive from the topic and date, in the user's language:
 - `AIエージェント_2026-04-12.md`, `cat_news_2026-04-12.md`, `Rust_async_2026-04-12.md`
@@ -262,7 +277,7 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 
 **Appendix** — strongly preferred. List candidate topics rejected in Phase 1: title, URL, one-line reason. Headed `## Also seen` (or localized equivalent).
 
-**Do not end the session without writing the output file.**
+**Do not end the session without running assemble.sh.**
 
 ## Rules
 
