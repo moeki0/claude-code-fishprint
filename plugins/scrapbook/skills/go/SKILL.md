@@ -6,6 +6,8 @@ allowed-tools:
   - Read
   - Write
   - Task
+  - WebSearch
+  - WebFetch
   - mcp__scrapbook__*
 ---
 
@@ -135,7 +137,7 @@ Steps:
 Constraints:
 - Everything in <user's language>.
 - Do NOT call assemble; the coordinator does that.
-- Never use WebSearch or WebFetch — only mcp__scrapbook__open.
+- Any URL you will *quote* (i.e. pass to capture) MUST be opened via mcp__scrapbook__open — capture only works on open pages. You may additionally use WebSearch / WebFetch for discovery, cross-referencing, or quick context checks where no screenshot is needed.
 - On error for a URL, skip it and continue with the remaining URLs. If no URL works, report "skipped".
 ```
 
@@ -159,7 +161,7 @@ This concatenates all section files in `sectionDir` (in numeric order), prepends
 
 - **For global/international topics, use English-language sources only**
 - **Citations must be translated to the user's language** — translate quotes naturally, not machine-translation style
-- **NEVER use WebSearch or WebFetch tools.** All browsing must go through the `open` MCP tool.
+- **Prefer `open` for anything you will quote from** — capture requires a page opened via `open` to produce 魚拓. Use `WebSearch` / `WebFetch` freely for discovery, quick relevance checks, or to enrich context where a screenshot is not needed.
 - **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only.
 - No duplicates
 - On error, skip and move on
