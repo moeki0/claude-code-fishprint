@@ -13,7 +13,7 @@ A Claude Code plugin that browses curated media (Hacker News, Lobsters, Reddit, 
 ## Install
 
 ```
-/plugin marketplace add moeki0/claude-code-scrapbook
+/plugin marketplace add moeki0/claude-code-fishprint
 /plugin install fishprint@fishprint
 ```
 
