@@ -164,36 +164,14 @@ Avoid: generic intros ("In recent years..."), TOC items, section titles, author 
 
 ### 4. Capture each element as a 魚拓 — MANDATORY
 
-**You must execute this step.** For each CSS selector, validate then screenshot and upload:
+**You must execute this step.** For each CSS selector, screenshot and upload:
 
-**Validate:**
+**Screenshot:**
 ```bash
-agent-browser --session section_<N> eval "(function(){
-  const el = document.querySelector('<selector>');
-  if (!el) return JSON.stringify({error:'not found'});
-  const r = el.getBoundingClientRect();
-  const len = (el.textContent||'').trim().length;
-  if (r.height > 600) return JSON.stringify({error:'too tall: '+Math.round(r.height)+'px'});
-  if (len > 1200) return JSON.stringify({error:'too long: '+len+' chars'});
-  return JSON.stringify({ok:true});
-})()"
+agent-browser --session section_<N> screenshot "<selector>" /tmp/shot_<N>_<i>.png
 ```
 
-If `{"ok":true}`, proceed. If error, pick a narrower selector and retry. Do NOT fall back to a wider selector.
-
-**Screenshot via html2canvas:**
-```bash
-RESULT=$(agent-browser --session section_<N> eval "new Promise(resolve=>{
-  const el=document.querySelector('<selector>');
-  const s=document.createElement('script');
-  s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
-  s.onload=()=>html2canvas(el,{scale:2,useCORS:true,logging:false})
-    .then(c=>resolve(c.toDataURL('image/png').replace('data:image/png;base64,','')));
-  document.head.appendChild(s);
-})")
-B64="${RESULT//\"/}"
-printf '%s' "$B64" | base64 --decode > /tmp/shot_<N>_<i>.png
-```
+If the command fails (element not found, etc.), pick a narrower selector and retry. Do NOT fall back to a wider selector.
 
 **Upload to Gyazo:**
 ```bash
