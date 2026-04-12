@@ -43,15 +43,9 @@ Arguments: `$ARGUMENTS`
 
 ## Flow
 
-### Phase 0: Reset — MANDATORY, DO NOT SKIP
+### Phase 0: Pick a sectionDir
 
-Call `reset` to create a new session. It returns:
-
-```json
-{ "sessionId": "...", "sectionDir": "/tmp/scrapbook_..." }
-```
-
-**Remember both values.** Pass `sectionDir` to `/scrapbook:write` calls and `sessionId` to `assemble`.
+Choose a unique temp path for this run, e.g. `/tmp/scrapbook_<YYYYMMDD_HHMMSS>` or `/tmp/scrapbook_<random>`. **Remember it.** Pass it to every `/scrapbook:write` call and to `assemble`. No explicit setup needed — the write skill creates the dir when it saves `section_1.md`.
 
 ### Phase 1: Browse & collect URLs
 
@@ -80,10 +74,10 @@ Collect **as many candidate article URLs as possible** (20+).
 Call the `assemble` MCP tool:
 
 ```
-assemble({ sessionId: "...", output: "./scrapbook_YYYY_MM_DD.md", title: "Scrapbook: {theme} — {date}" })
+assemble({ sectionDir: "/tmp/scrapbook_...", output: "./scrapbook_YYYY_MM_DD.md", title: "Scrapbook: {theme} — {date}" })
 ```
 
-This concatenates all section files in the session dir (in numeric order), prepends the title as an `#` heading, saves to the output path, and cleans up the session directory.
+This concatenates all section files in `sectionDir` (in numeric order), prepends the title as an `#` heading, saves to the output path, and cleans up `sectionDir`.
 
 **Do not end the session without calling assemble.**
 

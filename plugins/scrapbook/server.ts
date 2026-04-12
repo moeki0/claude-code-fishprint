@@ -5,7 +5,6 @@ import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprot
 import { chromium, type Browser, type Page } from "playwright";
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, unlinkSync, rmdirSync } from "fs";
 import { join, dirname } from "path";
-import { randomUUID } from "crypto";
 import { uploadToGyazoParallel } from "./lib";
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -72,7 +71,7 @@ function summarizeDOM(page: Page): Promise<{ structure: string; truncated: boole
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "scrapbook", version: "2.4.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "scrapbook", version: "2.5.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -122,21 +121,16 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
-      name: "reset",
-      description: "Start a new scrapbook session. Creates a unique session directory for section files. Returns sessionId and sectionDir — pass these to write and assemble. Call once at the start.",
-      inputSchema: { type: "object", properties: {} },
-    },
-    {
       name: "assemble",
-      description: "Concatenate all section files in the session directory into a single Markdown file with a top-level heading. Removes the session directory after assembly.",
+      description: "Concatenate all section_N.md files in sectionDir (numeric order) into a single Markdown file with a top-level heading. Removes sectionDir after assembly.",
       inputSchema: {
         type: "object",
         properties: {
-          sessionId: { type: "string", description: "Session ID from reset" },
+          sectionDir: { type: "string", description: "Directory containing section_*.md files (caller-chosen, e.g. /tmp/scrapbook_<uuid>)" },
           output: { type: "string", description: "Output file path (e.g. ./scrapbook_2026_04_12.md)" },
           title: { type: "string", description: "Top-level heading text (e.g. 'Scrapbook: AI agents — 2026-04-12')" },
         },
-        required: ["sessionId", "output", "title"],
+        required: ["sectionDir", "output", "title"],
       },
     },
   ],
@@ -233,26 +227,13 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       };
     }
 
-    case "reset": {
-      const sessionId = randomUUID().slice(0, 8);
-      const sectionDir = `/tmp/scrapbook_${sessionId}`;
-      mkdirSync(sectionDir, { recursive: true });
-      return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({ sessionId, sectionDir }),
-        }],
-      };
-    }
-
     case "assemble": {
-      const sessionId = args.sessionId as string;
+      const sectionDir = args.sectionDir as string;
       const output = args.output as string;
       const title = args.title as string;
 
-      const sectionDir = `/tmp/scrapbook_${sessionId}`;
       if (!existsSync(sectionDir)) {
-        return { content: [{ type: "text", text: `Session dir ${sectionDir} not found` }] };
+        return { content: [{ type: "text", text: `sectionDir ${sectionDir} not found` }] };
       }
 
       const files = readdirSync(sectionDir)
