@@ -71,7 +71,7 @@ function summarizeDOM(page: Page): Promise<{ structure: string; truncated: boole
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "fishprint", version: "2.10.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "fishprint", version: "2.11.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -115,13 +115,15 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "assemble",
-      description: "Concatenate all section_N.md files in sectionDir (numeric order) into a single Markdown file with a top-level heading. Removes sectionDir after assembly.",
+      description: "Concatenate all section_N.md files in sectionDir (numeric order) into a single Markdown file with a top-level heading. Optional preamble (inserted after the title, before sections) and appendix (inserted after sections). Removes sectionDir after assembly.",
       inputSchema: {
         type: "object",
         properties: {
           sectionDir: { type: "string", description: "Directory containing section_*.md files (caller-chosen, e.g. /tmp/fishprint_<uuid>)" },
           output: { type: "string", description: "Output file path (e.g. ./fishprint_2026_04_12.md)" },
           title: { type: "string", description: "Top-level heading text (e.g. 'Fishprint: AI agents — 2026-04-12')" },
+          preamble: { type: "string", description: "Optional Markdown inserted between the title and the first section — used for scope framing and the list of sources surveyed" },
+          appendix: { type: "string", description: "Optional Markdown appended after the last section — used for 'also seen but not selected' candidate topics" },
         },
         required: ["sectionDir", "output", "title"],
       },
@@ -235,6 +237,8 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       const sectionDir = args.sectionDir as string;
       const output = args.output as string;
       const title = args.title as string;
+      const preamble = (args.preamble as string | undefined)?.trim();
+      const appendix = (args.appendix as string | undefined)?.trim();
 
       if (!existsSync(sectionDir)) {
         return { content: [{ type: "text", text: `sectionDir ${sectionDir} not found` }] };
@@ -253,7 +257,11 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       }
 
       const sections = files.map(f => readFileSync(join(sectionDir, f), "utf-8").trim());
-      const combined = `# ${title}\n\n` + sections.join("\n\n---\n\n") + "\n";
+      const parts: string[] = [`# ${title}`];
+      if (preamble) parts.push(preamble);
+      parts.push(sections.join("\n\n---\n\n"));
+      if (appendix) parts.push(appendix);
+      const combined = parts.join("\n\n") + "\n";
 
       const outDir = dirname(output);
       if (outDir && !existsSync(outDir)) mkdirSync(outDir, { recursive: true });

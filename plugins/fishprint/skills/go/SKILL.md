@@ -55,16 +55,27 @@ Choose a unique temp path for this run, e.g. `/tmp/fishprint_<YYYYMMDD_HHMMSS>` 
 
 Use `open(url)` to browse curation sites widely. Read the DOM structure (titles, summaries, comments) to understand what conversations are happening. **Do not open individual articles yet** — that's the subagent's job.
 
-Extract a list of **distinct topics** — each topic is a short description of one discrete news item / discussion / release, paired with 1〜3 candidate source URLs that cover it. **Target: at least 8 topics, up to ~12.** If your first source only yields 3〜4, keep browsing additional sources until you reach 8. Do not proceed to Phase 2 with fewer than 8 topics unless you have genuinely exhausted the relevant sources. Deduplicate aggressively: two HN submissions about the same launch = one topic.
+**Keep a running log of the curation pages you visited** (name + URL). You will include this in the digest preamble so the reader can see *what was surveyed* — anti-FOMO by showing the work.
 
-Example topic entries:
+Extract **candidate topics** — short descriptions of discrete news items / discussions / releases, each paired with 1〜3 source URLs. Collect more candidates than you will keep (e.g. ~15〜20). Deduplicate aggressively: two HN submissions about the same launch = one candidate topic.
+
+From the candidates, **select the ~8 strongest as primary topics** — those with the most substance, biggest implications, or most interesting conversations. **Keep the rejected candidates** (title + URL + one-line reason) — they go into the appendix as "also seen".
+
+Example candidate entries:
 
 ```
 - topic: "Anthropic releases Claude Code 2.5 with agent SDK"
-  urls: [https://anthropic.com/news/...", "https://news.ycombinator.com/item?id=..."]
+  urls: ["https://anthropic.com/news/...", "https://news.ycombinator.com/item?id=..."]
+  selected: yes
 - topic: "Berkeley RDI shows AI agent benchmarks are trivially gamed"
   urls: ["https://rdi.berkeley.edu/blog/..."]
+  selected: yes
+- topic: "Someone rewrote their blog in Zig"
+  urls: ["https://example.com/..."]
+  selected: no  (niche, low signal)
 ```
+
+**Quantity rule: at least 8 selected.** If your first curation page only yields 3〜4 candidates, keep browsing additional sources until you have enough candidates to pick 8 strong ones from. But do not pad — if you genuinely exhausted sources and only 5 are strong, it's fine to ship 5. Fewer-deeper beats more-shallower.
 
 `close(id)` curation pages before Phase 2 to free browser resources.
 
@@ -152,13 +163,44 @@ Constraints:
 
 ### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 
-Call the `assemble` MCP tool:
+Call the `assemble` MCP tool with `preamble` and `appendix`:
 
 ```
-assemble({ sectionDir: "/tmp/fishprint_...", output: "<ABSOLUTE_PATH>/fishprint_YYYY_MM_DD.md", title: "Fishprint: {theme} — {date}" })
+assemble({
+  sectionDir: "/tmp/fishprint_...",
+  output: "<ABSOLUTE_PATH>/fishprint_YYYY_MM_DD.md",
+  title: "Fishprint: {theme} — {date}",
+  preamble: "<see below>",
+  appendix: "<see below>"
+})
 ```
 
-This concatenates all section files in `sectionDir` (in numeric order), prepends the title as an `#` heading, saves to the output path, and cleans up `sectionDir`.
+**Preamble** — write it in the user's language. Required. Include:
+
+1. **A humble scope line.** One sentence that makes clear this is one curator's view, not a complete list. Example (JA): *"2026年4月12日、{theme}まわりで目に入ったトピック8件。網羅ではなく、今日の干し草の山から拾い上げた8本。"*  Example (EN): *"One curator's view of {theme} on 2026-04-12 — eight items lifted from today's haystack, not a complete index."*
+2. **Sources surveyed.** Bullet list of the curation pages you actually visited in Phase 1, with URLs. This is the "work log" that defuses "what else did you skip?" anxiety.
+
+```markdown
+> 2026-04-12、AIエージェントまわりで目に入った8件。網羅ではなく、今日の干し草の山から拾い上げた分。
+
+**今日見た場所:**
+- [Hacker News front page](https://news.ycombinator.com/)
+- [Lobsters](https://lobste.rs/)
+- [/r/MachineLearning](https://old.reddit.com/r/MachineLearning/)
+- [arXiv cs.LG recent](https://arxiv.org/list/cs.LG/recent)
+```
+
+**Appendix** — optional but strongly preferred. Format as a `## Also seen` (or localized equivalent) section listing the candidate topics you rejected in Phase 1. One line per item: title, source, and a one-line reason. This shows readers what *was* in your field of view but didn't make the cut — so FOMO doesn't have to guess.
+
+```markdown
+## Also seen (not selected)
+
+- [Someone rewrote their blog in Zig](https://example.com/...) — niche, low signal
+- [Yet another JS framework announced](https://example.com/...) — not substantively new
+- [Reddit thread about IDE preferences](https://old.reddit.com/...) — opinion, no news
+```
+
+This concatenates all section files in `sectionDir` (in numeric order), prepends the title + preamble, appends the appendix, saves to the output path, and cleans up `sectionDir`.
 
 **`output` MUST be an absolute path.** The MCP server's working directory is its own install location, not the user's working directory — a relative path like `./fishprint.md` will land in the plugin cache. Build the absolute path from the user's current working directory (the one shown at the top of your system context, e.g. `/Users/alice/wiki/fishprint_YYYY_MM_DD.md`).
 
