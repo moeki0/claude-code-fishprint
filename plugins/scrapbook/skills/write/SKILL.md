@@ -9,11 +9,11 @@ allowed-tools:
 
 # /scrapbook:write — Generate one article section
 
-Arguments: `$ARGUMENTS` (article content, quotes, source URL, language, output file path)
+Arguments: `$ARGUMENTS` (article content, quotes, source URL, language, sectionDir, section number)
 
 ## What this does
 
-Write **one section** of a scrapbook digest for a single article. Save the section to the specified temporary file path (e.g. `/tmp/scrapbook_section_3.md`). The caller assembles all sections into the final file.
+Write **one section** of a scrapbook digest for a single article. Save the section to `{sectionDir}/section_{N}.md`. The caller (`/scrapbook:go`) assembles all sections into the final file.
 
 ## Output format
 

@@ -3,8 +3,9 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { chromium, type Browser, type Page } from "playwright";
-import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, unlinkSync } from "fs";
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, unlinkSync, rmdirSync } from "fs";
 import { join, dirname } from "path";
+import { randomUUID } from "crypto";
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
@@ -98,19 +99,20 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "reset",
-      description: "Clear any leftover /tmp/scrapbook_section_*.md files from previous sessions. Call at the start of each scrapbook run.",
+      description: "Start a new scrapbook session. Creates a unique session directory for section files. Returns sessionId and sectionDir — pass these to write and assemble. Call once at the start.",
       inputSchema: { type: "object", properties: {} },
     },
     {
       name: "assemble",
-      description: "Concatenate all /tmp/scrapbook_section_*.md files into a single Markdown file with a top-level heading. Removes temp files after assembly.",
+      description: "Concatenate all section files in the session directory into a single Markdown file with a top-level heading. Removes the session directory after assembly.",
       inputSchema: {
         type: "object",
         properties: {
+          sessionId: { type: "string", description: "Session ID from reset" },
           output: { type: "string", description: "Output file path (e.g. ./scrapbook_2026_04_12.md)" },
           title: { type: "string", description: "Top-level heading text (e.g. 'Scrapbook: AI agents — 2026-04-12')" },
         },
-        required: ["output", "title"],
+        required: ["sessionId", "output", "title"],
       },
     },
   ],
@@ -170,21 +172,29 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
     }
 
     case "reset": {
-      const tmpDir = "/tmp";
-      const files = readdirSync(tmpDir).filter(f => /^scrapbook_section_\d+\.md$/.test(f));
-      for (const f of files) {
-        try { unlinkSync(join(tmpDir, f)); } catch {}
-      }
-      return { content: [{ type: "text", text: `Removed ${files.length} leftover section files` }] };
+      const sessionId = randomUUID().slice(0, 8);
+      const sectionDir = `/tmp/scrapbook_${sessionId}`;
+      mkdirSync(sectionDir, { recursive: true });
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({ sessionId, sectionDir }),
+        }],
+      };
     }
 
     case "assemble": {
+      const sessionId = args.sessionId as string;
       const output = args.output as string;
       const title = args.title as string;
 
-      const tmpDir = "/tmp";
-      const files = readdirSync(tmpDir)
-        .filter(f => /^scrapbook_section_\d+\.md$/.test(f))
+      const sectionDir = `/tmp/scrapbook_${sessionId}`;
+      if (!existsSync(sectionDir)) {
+        return { content: [{ type: "text", text: `Session dir ${sectionDir} not found` }] };
+      }
+
+      const files = readdirSync(sectionDir)
+        .filter(f => /^section_\d+\.md$/.test(f))
         .sort((a, b) => {
           const na = parseInt(a.match(/\d+/)![0]);
           const nb = parseInt(b.match(/\d+/)![0]);
@@ -192,20 +202,21 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         });
 
       if (files.length === 0) {
-        return { content: [{ type: "text", text: "No section files found in /tmp/scrapbook_section_*.md" }] };
+        return { content: [{ type: "text", text: `No section files found in ${sectionDir}` }] };
       }
 
-      const sections = files.map(f => readFileSync(join(tmpDir, f), "utf-8").trim());
+      const sections = files.map(f => readFileSync(join(sectionDir, f), "utf-8").trim());
       const combined = `# ${title}\n\n` + sections.join("\n\n---\n\n") + "\n";
 
       const outDir = dirname(output);
       if (outDir && !existsSync(outDir)) mkdirSync(outDir, { recursive: true });
       writeFileSync(output, combined);
 
-      // Clean up temp files
+      // Clean up session dir
       for (const f of files) {
-        try { unlinkSync(join(tmpDir, f)); } catch {}
+        try { unlinkSync(join(sectionDir, f)); } catch {}
       }
+      try { rmdirSync(sectionDir); } catch {}
 
       return {
         content: [{ type: "text", text: `Assembled ${files.length} sections into ${output}` }],

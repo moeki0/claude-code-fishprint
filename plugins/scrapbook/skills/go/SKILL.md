@@ -45,7 +45,13 @@ Arguments: `$ARGUMENTS`
 
 ### Phase 0: Reset — MANDATORY, DO NOT SKIP
 
-Call `reset` to remove any leftover `/tmp/scrapbook_section_*.md` files from previous sessions.
+Call `reset` to create a new session. It returns:
+
+```json
+{ "sessionId": "...", "sectionDir": "/tmp/scrapbook_..." }
+```
+
+**Remember both values.** Pass `sectionDir` to `/scrapbook:write` calls and `sessionId` to `assemble`.
 
 ### Phase 1: Browse & collect URLs
 
@@ -63,7 +69,7 @@ Collect **as many candidate article URLs as possible** (20+).
 
 1. Call `open(url)` for up to 4 articles in parallel — each returns a page ID
 2. As each page loads, read its content and follow outbound links to primary sources
-3. Invoke `/scrapbook:write` for each article in parallel — each call produces one independent section
+3. Invoke `/scrapbook:write` for each article in parallel, passing `sectionDir` and a unique section number — the write skill saves the section to `{sectionDir}/section_N.md`
 4. `close(id)` to free pages when done
 
 **Maximize concurrency.** open calls, write calls — all can run in parallel since each article is independent.
@@ -73,10 +79,10 @@ Collect **as many candidate article URLs as possible** (20+).
 Call the `assemble` MCP tool:
 
 ```
-assemble({ output: "./scrapbook_YYYY_MM_DD.md", title: "Scrapbook: {theme} — {date}" })
+assemble({ sessionId: "...", output: "./scrapbook_YYYY_MM_DD.md", title: "Scrapbook: {theme} — {date}" })
 ```
 
-This concatenates all `/tmp/scrapbook_section_*.md` files (in numeric order), prepends the title as an `#` heading, saves to the output path, and cleans up the temp files.
+This concatenates all section files in the session dir (in numeric order), prepends the title as an `#` heading, saves to the output path, and cleans up the session directory.
 
 **Do not end the session without calling assemble.**
 
