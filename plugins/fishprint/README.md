@@ -66,9 +66,9 @@ Output: `fishprint_YYYY_MM_DD.md` in your current working directory.
 ```markdown
 # Fishprint: AI agents — 2026-04-12
 
-> 2026-04-12、AIエージェントまわりで目に入った8件。網羅ではなく、今日の干し草の山から拾い上げた分。
+> One curator's view of AI agents on 2026-04-12 — eight items lifted from today's haystack, not a complete index.
 
-**今日見た場所:**
+**Surveyed today:**
 - [Hacker News front page](https://news.ycombinator.com/)
 - [Lobsters](https://lobste.rs/)
 - [/r/MachineLearning](https://old.reddit.com/r/MachineLearning/)
@@ -81,7 +81,7 @@ Narrative text explaining context and significance.
 
 ![Original-language quote, as shown on the page](https://i.gyazo.com/xxx.png)
 
-> 自然な訳文が画像の下に来る。
+> A natural translation rendered directly under the image.
 
 More narrative connecting this to the next 魚拓.
 
