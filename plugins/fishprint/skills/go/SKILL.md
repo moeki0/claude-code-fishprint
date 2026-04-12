@@ -7,17 +7,20 @@ allowed-tools:
   - Write
   - Task
   - WebSearch
-  - Bash(fishprint *)
-  - Bash(~/.claude/plugins/cache/fishprint/*)
   - Bash(agent-browser *)
+  - Bash(gyazo *)
   - Bash(curl *)
-  - Bash(security *)
-  - Bash(secret-tool *)
   - Bash(base64 *)
   - Bash(printf *)
-  - Bash(rm *)
-  - Bash(mkdir *)
+  - Bash(cat *)
+  - Bash(echo *)
   - Bash(ls *)
+  - Bash(sort *)
+  - Bash(rm *)
+  - Bash(rmdir *)
+  - Bash(mkdir *)
+  - Bash(dirname *)
+  - Bash(wc *)
 ---
 
 # Fishprint — Primary-source web research with 魚拓
@@ -27,7 +30,7 @@ Arguments: `$ARGUMENTS`
 ## What Fishprint does
 
 1. Browse curation sites widely and **extract a list of distinct topics** — each topic may cite 1〜3 source URLs
-2. **Spawn one Task (general-purpose subagent) per topic, in parallel.** Each subagent opens its sources with agent-browser, selects thesis sentences, captures 魚拓 screenshots via html2canvas + Gyazo, and writes its own `section_N.md` directly via `Write`
+2. **Spawn one Task (general-purpose subagent) per topic, in parallel.** Each subagent opens its sources with agent-browser, selects thesis sentences, captures 魚拓 screenshots via agent-browser + gyazo upload, and writes its own `section_N.md` directly via `Write`
 3. Read all section files and assemble into a single Markdown digest
 
 **Scaling principle:** The main agent only holds the topic list. All heavy context (DOMs, quotes, translations) lives inside subagents. One wave of ~8 topics per run is the default target.
@@ -117,7 +120,7 @@ Time constraint: <absolute date range e.g. "2026-04-12 only" or "2026-04-06〜20
 
 ## CRITICAL REQUIREMENTS — read before anything else
 
-1. **You MUST capture at least one 魚拓 screenshot per section.** A section with no Gyazo images is a failure. Do not write the section file without at least one `![...](https://i.gyazo.com/...)` image.
+1. **You MUST capture at least one 魚拓 screenshot per section.** A section with no Gyazo images is a failure. Do not write the section file without at least one `![...](https://i.gyazo.com/...)` image. Upload via `gyazo upload <path>` (from `@yuiseki/gyazocli`).
 2. **WebSearch is forbidden for reading article content.** Use `agent-browser` to open and read every source URL. WebSearch may only be used to find a URL if none of the candidate URLs work.
 3. **Steps 1–4 below are mandatory and must be executed in order.** Do not skip to writing.
 
@@ -175,7 +178,7 @@ If the command fails (element not found, etc.), pick a narrower selector and ret
 
 **Upload to Gyazo:**
 ```bash
-GYAZO_URL=$(fishprint gyazo-upload /tmp/shot_<N>_<i>.png)
+GYAZO_URL=$(gyazo upload /tmp/shot_<N>_<i>.png | grep "^URL:" | sed 's|URL: https://gyazo.com/|https://i.gyazo.com/|; s/$/.png/')
 ```
 
 Record `GYAZO_URL` for use in the section Markdown. **If GYAZO_URL is empty, retry with a different selector — do not proceed without a valid URL.**
@@ -253,21 +256,39 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 
 ### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 
-Write preamble and appendix to temp files, then call the assemble script:
+Write preamble and appendix inline, then assemble with bash:
 
 ```bash
-# Write preamble to temp file
+# Write preamble
 cat > /tmp/fishprint_preamble.md << 'PREAMBLE'
 <preamble content>
 PREAMBLE
 
-# Write appendix to temp file (if any)
+# Write appendix (if any)
 cat > /tmp/fishprint_appendix.md << 'APPENDIX'
 <appendix content>
 APPENDIX
 
-fishprint assemble <sectionDir> <output> /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
+# Assemble sections
+SECTION_DIR=<sectionDir>
+OUTPUT=<output>
+sections=$(ls "$SECTION_DIR"/section_*.md 2>/dev/null | sort -t_ -k2 -n)
+mkdir -p "$(dirname "$OUTPUT")"
+{
+  cat /tmp/fishprint_preamble.md; echo; echo
+  first=1
+  while IFS= read -r f; do
+    [ "$first" = "1" ] && first=0 || { echo; echo "---"; echo; }
+    cat "$f"
+  done <<< "$sections"
+  [ -f /tmp/fishprint_appendix.md ] && { echo; echo "---"; echo; cat /tmp/fishprint_appendix.md; }
+} > "$OUTPUT"
+
+# Clean up
+while IFS= read -r f; do rm -f "$f"; done <<< "$sections"
+rmdir "$SECTION_DIR" 2>/dev/null || true
 rm -f /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
+echo "Assembled → $OUTPUT"
 ```
 
 **Output filename** — derive from the topic and date, in the user's language:
@@ -285,7 +306,7 @@ rm -f /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
 
 **Appendix** — strongly preferred. List candidate topics rejected in Phase 1: title, URL, one-line reason. Headed `## Also seen` (or localized equivalent).
 
-**Do not end the session without running assemble.sh.**
+**Do not end the session without assembling.**
 
 ## Rules
 

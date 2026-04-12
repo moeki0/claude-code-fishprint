@@ -36,7 +36,7 @@ Phase 3 — Assemble
 ### Setup
 
 ```bash
-npm install -g fishprint
+npm install -g @yuiseki/gyazocli
 brew install agent-browser
 agent-browser install
 ```
@@ -44,10 +44,7 @@ agent-browser install
 ### Gyazo (required — 魚拓 are uploaded here)
 
 ```bash
-# macOS
-security add-generic-password -a gyazo -s fishprint -w YOUR_GYAZO_TOKEN -U
-# Linux
-secret-tool store --label=fishprint service fishprint key gyazo
+gyazo config set token YOUR_GYAZO_TOKEN
 ```
 
 Get a token at [gyazo.com/oauth/applications](https://gyazo.com/oauth/applications).
@@ -103,7 +100,7 @@ More narrative connecting this to the next 魚拓.
 
 ## How it works internally
 
-No MCP server. Subagents use **agent-browser** CLI for browser automation and **html2canvas** (injected via eval) for element-level screenshots. Gyazo uploads go through `bin/gyazo-upload.sh`.
+No MCP server. Subagents use **agent-browser** CLI for browser automation and element-level screenshots. Gyazo uploads go through [`@yuiseki/gyazocli`](https://www.npmjs.com/package/@yuiseki/gyazocli) (`gyazo upload`).
 
 ## License
 
