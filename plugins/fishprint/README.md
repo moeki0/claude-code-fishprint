@@ -59,13 +59,11 @@ Get a token at [gyazo.com/oauth/applications](https://gyazo.com/oauth/applicatio
 /fishprint:go              # no theme — whatever is interesting on major curation sites right now
 ```
 
-Output: `fishprint_YYYY_MM_DD.md` in your current working directory.
+Output: `{theme}_YYYY-MM-DD.md` (or `fishprint_YYYY-MM-DD.md` if no theme given) in your current working directory.
 
 ## Output shape
 
 ```markdown
-# Fishprint: AI agents — 2026-04-12
-
 > One curator's view of AI agents on 2026-04-12 — eight items lifted from today's haystack, not a complete index.
 
 **Surveyed today:**
@@ -102,16 +100,9 @@ More narrative connecting this to the next 魚拓.
 - [Reddit thread about IDE preferences](https://…) — opinion, no news
 ```
 
-## Tools exposed
+## How it works internally
 
-The plugin registers a `fishprint` MCP server with four tools the main agent and subagents share:
-
-| Tool | Purpose |
-|------|---------|
-| `open(url)` | Playwright-backed page load; returns a DOM summary and a page ID. Up to 4 concurrent. |
-| `capture({ id, selectors })` | Screenshot each selector on the open page, upload to Gyazo in parallel, return `{ captured, rejected }`. Elements taller than 600px or containing more than 1200 chars are rejected so the caller picks a narrower selector. |
-| `close(id)` | Free the page's browser context. |
-| `assemble({ sectionDir, output, title, preamble?, appendix? })` | Concatenate section files into a single Markdown file, with optional scope preamble and "also seen" appendix. |
+No MCP server. Subagents use **agent-browser** CLI for browser automation and **html2canvas** (injected via eval) for element-level screenshots. Gyazo uploads go through `bin/gyazo-upload.sh`.
 
 ## License
 
