@@ -2,13 +2,29 @@
 
 > Primary-source scrapbook for the web.
 
-A Claude Code plugin that browses curated media (Hacker News, Lobsters, Reddit, arXiv, …), 魚拓 (screenshots) key sentences from each source, and writes a citation-driven topic digest in Markdown. Each 魚拓 shows the original page exactly as published; a translation is rendered directly below as a blockquote.
+A Claude Code plugin that browses curated media (Hacker News, Lobsters, Reddit, arXiv, …), captures 魚拓 (screenshots) of the key sentences it quotes, and writes a citation-driven topic digest in Markdown.
 
-## What it does
+Each 魚拓 shows the original page **exactly as published** — original language, original layout. A natural translation is rendered directly below as a blockquote. You get both: the primary-source evidence *and* the readable summary.
 
-1. Browses curation sites and extracts a list of distinct topics
-2. Spawns one subagent per topic — each opens its sources, selects thesis-bearing sentences, captures 魚拓, and writes its own section
-3. Assembles all sections into one dated Markdown file
+## How it works
+
+```
+Phase 1 — Browse & select
+  main agent visits curation sites, extracts ~15〜20 candidate topics,
+  picks ~8 strongest, keeps the rejected ones as "also seen"
+
+Phase 2 — Research in parallel
+  one general-purpose subagent per topic, dispatched concurrently.
+  each subagent: open sources → pick thesis sentences → capture 魚拓 → write section
+
+Phase 3 — Assemble
+  concatenate sections, prepend a scope-framing preamble
+  (sources surveyed) and a list of rejected candidates as the appendix
+```
+
+**Scaling.** The main agent only holds the topic list. All heavy context (DOMs, quotes, translations) lives inside subagents, so a run that covers 8〜12 topics stays in bounds.
+
+**Anti-FOMO design.** Every digest explicitly states this is one curator's view (not a complete index), lists which sources were surveyed, and shows candidates that were considered and rejected with reasons. Visible selection beats hidden selection.
 
 ## Install
 
@@ -24,7 +40,7 @@ cd ~/.claude/plugins/cache/fishprint/fishprint/*/
 bun install && bunx playwright install chromium
 ```
 
-### Gyazo (required for 魚拓 upload)
+### Gyazo (required — 魚拓 are uploaded here)
 
 ```bash
 # macOS
@@ -33,7 +49,7 @@ security add-generic-password -a gyazo -s fishprint -w YOUR_GYAZO_TOKEN -U
 secret-tool store --label=fishprint service fishprint key gyazo
 ```
 
-(A `scrapbook` service entry still works as a fallback if you set it up under the old plugin name.)
+Get a token at [gyazo.com/oauth/applications](https://gyazo.com/oauth/applications). A `scrapbook` keychain entry also works as a fallback for users who set up under the old plugin name.
 
 ## Usage
 
@@ -43,7 +59,59 @@ secret-tool store --label=fishprint service fishprint key gyazo
 /fishprint:go              # no theme — whatever is interesting on major curation sites right now
 ```
 
-Output: `fishprint_YYYY_MM_DD.md` in your working directory. Each quote is a Gyazo-hosted screenshot of the original element, followed by a natural translation as a blockquote.
+Output: `fishprint_YYYY_MM_DD.md` in your current working directory.
+
+## Output shape
+
+```markdown
+# Fishprint: AI agents — 2026-04-12
+
+> 2026-04-12、AIエージェントまわりで目に入った8件。網羅ではなく、今日の干し草の山から拾い上げた分。
+
+**今日見た場所:**
+- [Hacker News front page](https://news.ycombinator.com/)
+- [Lobsters](https://lobste.rs/)
+- [/r/MachineLearning](https://old.reddit.com/r/MachineLearning/)
+
+---
+
+## Topic 1 title (in your language)
+
+Narrative text explaining context and significance.
+
+![Original-language quote, as shown on the page](https://i.gyazo.com/xxx.png)
+
+> 自然な訳文が画像の下に来る。
+
+More narrative connecting this to the next 魚拓.
+
+**Sources:**
+- → [Primary source](https://example.com/article)
+
+---
+
+## Topic 2 title
+
+…
+
+---
+
+## Also seen (not selected)
+
+- [Yet another JS framework](https://…) — not substantively new
+- [Reddit thread about IDE preferences](https://…) — opinion, no news
+```
+
+## Tools exposed
+
+The plugin registers a `fishprint` MCP server with four tools the main agent and subagents share:
+
+| Tool | Purpose |
+|------|---------|
+| `open(url)` | Playwright-backed page load; returns a DOM summary and a page ID. Up to 4 concurrent. |
+| `capture({ id, selectors })` | Screenshot each selector on the open page, upload to Gyazo in parallel, return `{ captured, rejected }`. Elements taller than 600px or containing more than 1200 chars are rejected so the caller picks a narrower selector. |
+| `close(id)` | Free the page's browser context. |
+| `assemble({ sectionDir, output, title, preamble?, appendix? })` | Concatenate section files into a single Markdown file, with optional scope preamble and "also seen" appendix. |
 
 ## License
 
