@@ -114,6 +114,13 @@ sectionDir: <sectionDir>          (e.g. /tmp/fishprint_xxx)
 Section number: <N>
 Target language: <user's language>
 Time constraint: <absolute date range e.g. "2026-04-12 only" or "2026-04-06〜2026-04-12"; or "none">
+
+## CRITICAL REQUIREMENTS — read before anything else
+
+1. **You MUST capture at least one 魚拓 screenshot per section.** A section with no Gyazo images is a failure. Do not write the section file without at least one `![...](https://i.gyazo.com/...)` image.
+2. **WebSearch is forbidden for reading article content.** Use `agent-browser` to open and read every source URL. WebSearch may only be used to find a URL if none of the candidate URLs work.
+3. **Steps 1–4 below are mandatory and must be executed in order.** Do not skip to writing.
+
 ## Steps
 
 ### 1. Open each candidate URL
@@ -149,9 +156,9 @@ Avoid: generic intros ("In recent years..."), TOC items, section titles, author 
 - On platforms (Medium, Substack, WordPress, Ghost, Notion), use `nth-of-type` on `p` — e.g. `article p:nth-of-type(4)`.
 - When unsure, pick the narrower selector.
 
-### 4. Capture each element as a 魚拓
+### 4. Capture each element as a 魚拓 — MANDATORY
 
-For each CSS selector, first validate, then screenshot and upload:
+**You must execute this step.** For each CSS selector, validate then screenshot and upload:
 
 **Validate:**
 ```bash
@@ -186,7 +193,7 @@ printf '%s' "$RESULT" | tr -d '"' | sed 's/data:image\/png;base64,//' | base64 -
 GYAZO_URL=$(fishprint gyazo-upload /tmp/shot_<N>_<i>.png)
 ```
 
-Record `GYAZO_URL` for use in the section Markdown.
+Record `GYAZO_URL` for use in the section Markdown. **If GYAZO_URL is empty, retry with a different selector — do not proceed without a valid URL.**
 
 ### 5. Visually central images
 
@@ -250,8 +257,8 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 
 - Everything in <user's language>.
 - **NEVER use `mcp__claude-in-chrome__*` tools.** Use only `agent-browser` CLI via Bash.
-- Use WebSearch freely for discovery and quick relevance checks.
-- On error for a URL, skip it and continue. If no URL works, report "skipped".
+- **NEVER use WebSearch to read article content.** Open every URL with `agent-browser`.
+- On error for a URL, skip it and try the next candidate. If ALL URLs fail, report "skipped".
 - **If Time constraint is not "none":** check the article's publish date. If outside the range, skip that article entirely. If all candidates are outside the range, report "section <N> skipped: no content within time constraint".
 ```
 
