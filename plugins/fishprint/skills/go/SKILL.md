@@ -123,6 +123,12 @@ Time constraint: <absolute date range e.g. "2026-04-12 only" or "2026-04-06〜20
 
 ## Steps
 
+### 0. Create section directory
+
+```bash
+mkdir -p <sectionDir>
+```
+
 ### 1. Open each candidate URL
 
 Run in parallel (separate Bash calls, all at once):
@@ -182,10 +188,11 @@ RESULT=$(agent-browser --session section_<N> eval "new Promise(resolve=>{
   const s=document.createElement('script');
   s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
   s.onload=()=>html2canvas(el,{scale:2,useCORS:true,logging:false})
-    .then(c=>resolve(c.toDataURL('image/png')));
+    .then(c=>resolve(c.toDataURL('image/png').replace('data:image/png;base64,','')));
   document.head.appendChild(s);
 })")
-printf '%s' "$RESULT" | tr -d '"' | sed 's/data:image\/png;base64,//' | base64 --decode > /tmp/shot_<N>_<i>.png
+B64="${RESULT//\"/}"
+printf '%s' "$B64" | base64 --decode > /tmp/shot_<N>_<i>.png
 ```
 
 **Upload to Gyazo:**
@@ -263,6 +270,8 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 ```
 
 **Wave control.** If the topic list exceeds ~10, issue Tasks in groups of 8 per message. Wait for each wave before dispatching the next. Assign section numbers sequentially across waves. Gaps from "skipped" sections are fine — assembly handles them.
+
+**If a subagent fails or is skipped:** do NOT write the section yourself. Simply note the gap and proceed to Phase 3. The parent agent never writes section content — that is always the subagent's job.
 
 ### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 
