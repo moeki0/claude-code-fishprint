@@ -62,9 +62,17 @@ Collect **as many candidate article URLs as possible** (20+).
 **Run everything in parallel.** Open pages, read content, capture translated screenshots, and generate sections concurrently:
 
 1. Call `open(url)` for up to 4 articles in parallel — each returns a page ID
-2. As each page loads, read its DOM structure and identify 1〜3 quote-worthy elements per article (specific `p`, `blockquote`, `li`, `h2` selectors). Prepare a natural translation for each into the user's language.
+2. As each page loads, **read the full article carefully** and identify 1〜3 *sentences* that carry the thesis of the piece — the claims a reader would want to quote in a discussion. Skip headings, navigation, boilerplate, date stamps, author bios. Prefer:
+   - The one-sentence claim that best summarizes the piece's argument
+   - Concrete numbers, findings, or quoted statements from sources
+   - Unexpected, counterintuitive, or opinionated lines
+   - **Avoid**: generic intros ("In recent years..."), table-of-contents items, obvious facts, section titles
+
+   Identify the **smallest element that wraps exactly that sentence** (usually a specific `p`, sometimes `blockquote` or `li`; `h2`/`h3` only if the heading itself is the thesis). If the important sentence sits inside a paragraph with other sentences, still pick the `p` — the whole paragraph's context helps.
+
+   Prepare a natural translation for each into the user's language.
 3. Call `capture({ id, sections: [{ selector, translated }, ...] })` for each page — returns an array of `{ selector, url }`. The Gyazo URL points to a screenshot of that element with its text replaced by the translation. Capture calls run in parallel with other pages.
-4. Invoke `/scrapbook:write` for each article in parallel, passing the captured image URLs, `sectionDir`, and a unique section number — the write skill saves the section to `{sectionDir}/section_N.md`.
+4. Invoke `/scrapbook:write` for each article in parallel, passing the captured image URLs, **the original article URL**, `sectionDir`, and a unique section number — the write skill saves the section to `{sectionDir}/section_N.md`.
 5. `close(id)` to free pages when done.
 
 **Maximize concurrency.** open / capture / write calls all run in parallel since each article is independent.

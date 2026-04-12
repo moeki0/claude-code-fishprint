@@ -9,7 +9,7 @@ allowed-tools:
 
 # /scrapbook:write — Generate one article section
 
-Arguments: `$ARGUMENTS` (article content, captured image URLs with their translated text, source URL, language, sectionDir, section number)
+Arguments: `$ARGUMENTS` (article content, captured image URLs with their translated text, **source URL (required — always include as a link at the end)**, language, sectionDir, section number)
 
 ## What this does
 
@@ -52,5 +52,5 @@ Narrative explaining what this source adds.
 - **Include all 魚拓 URLs passed in.** Each represents an intentional quote.
 - **Embed important article figures** (graphs, benchmark tables, architecture diagrams) using their original URL: `![description](https://example.com/image.png)`. Only include figures that add information text cannot convey.
 - `##` heading: article title in user's language
-- Link to original source at the end
+- **ALWAYS end the section with a link to the original source** — `→ [Source](<url>)` on its own line. This is mandatory; never skip it. Readers must be able to reach the origin in one click.
 - **NEVER invoke Python, Node, or any programming language via Bash.**
