@@ -71,7 +71,7 @@ function summarizeDOM(page: Page): Promise<{ structure: string; truncated: boole
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "scrapbook", version: "2.8.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "scrapbook", version: "2.9.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -178,21 +178,43 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       }
       const page = entry.page;
 
+      // A quote-bearing element should be at most one paragraph.
+      // Reject oversized elements so the subagent picks a narrower selector.
+      const MAX_HEIGHT_PX = 600;
+      const MAX_TEXT_CHARS = 1200;
+
       const shots: { buf: Buffer; title: string; selector: string }[] = [];
+      const rejected: { selector: string; reason: string }[] = [];
+
       for (const selector of selectors) {
         try {
           const el = await page.$(selector);
-          if (!el) continue;
+          if (!el) {
+            rejected.push({ selector, reason: "selector did not match any element" });
+            continue;
+          }
+          const box = await el.boundingBox();
+          const textLen = await el.evaluate((n) => (n.textContent || "").trim().length);
+          if (box && box.height > MAX_HEIGHT_PX) {
+            rejected.push({ selector, reason: `element too tall (${Math.round(box.height)}px > ${MAX_HEIGHT_PX}px) — pick a single paragraph, not a container` });
+            continue;
+          }
+          if (textLen > MAX_TEXT_CHARS) {
+            rejected.push({ selector, reason: `element has too much text (${textLen} chars > ${MAX_TEXT_CHARS}) — pick a single paragraph, not a container` });
+            continue;
+          }
           const buf = await el.screenshot();
           shots.push({ buf: Buffer.from(buf), title: entry.url, selector });
-        } catch {}
+        } catch (e: any) {
+          rejected.push({ selector, reason: `capture failed: ${e?.message ?? e}` });
+        }
       }
 
       const urls = await uploadToGyazoParallel(shots.map(s => ({ buf: s.buf, title: s.title })));
       const results = shots.map((s, i) => ({ selector: s.selector, url: urls[i] }));
 
       return {
-        content: [{ type: "text", text: JSON.stringify(results) }],
+        content: [{ type: "text", text: JSON.stringify({ captured: results, rejected }) }],
       };
     }
 

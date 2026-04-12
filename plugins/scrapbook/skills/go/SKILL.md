@@ -91,8 +91,15 @@ Steps:
    - Concrete numbers, findings, quoted statements
    - Unexpected, counterintuitive, or opinionated lines
    Avoid: generic intros ("In recent years..."), TOC items, section titles.
-   Identify the smallest element that wraps exactly that sentence (usually a specific `p`, sometimes `blockquote`/`li`). Use the `p`, not a sub-span — surrounding context helps.
-4. Call mcp__scrapbook__capture({ id, selectors: [selector1, selector2, ...] }) for each page. This screenshots the ORIGINAL (untranslated) element and returns Gyazo URLs — one per selector.
+
+   **Selector rules — critical for 魚拓 quality:**
+   - Target ONE paragraph or list item, NOT a container. The element should visually be ~1〜6 lines tall.
+   - Allowed tags: `p`, `blockquote`, `li`, `figcaption`, `h2`/`h3` (only if the heading itself is the quote).
+   - FORBIDDEN tags: `div`, `section`, `article`, `main`, `aside`, `body`.
+   - FORBIDDEN class patterns: anything that names a container — `entry-content`, `post-content`, `article-body`, `et_pb_*`, `prose`, `markdown-body`, `content`, `main`, etc.
+   - If the article is on a platform (Medium, Substack, WordPress, Ghost, Notion), use `nth-of-type` or attribute selectors on `p` — e.g. `article p:nth-of-type(4)`, not the wrapping class.
+   - When unsure between a narrow and a wide selector, pick the narrow one. capture rejects elements >600px tall or >1200 chars; better to get a clean rejection and retry than to ship a wall-of-text 魚拓.
+4. Call mcp__scrapbook__capture({ id, selectors: [selector1, selector2, ...] }) for each page. The server screenshots the ORIGINAL (untranslated) element and uploads to Gyazo. **Response shape**: `{ captured: [{selector, url}], rejected: [{selector, reason}] }`. If any selector is rejected (too tall, too much text, or not found), pick a narrower alternative and call capture again for just those selectors. Do not fall back to a wider selector — go narrower.
 5. For each captured quote, prepare a natural translation into <user's language> (not machine-translation style). The translation goes into the Markdown under the image, not into the image itself.
 6. Compose the Markdown section yourself and save it directly with the `Write` tool to `<sectionDir>/section_<N>.md`.
 
