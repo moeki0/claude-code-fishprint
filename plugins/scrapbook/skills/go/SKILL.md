@@ -5,6 +5,7 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
+  - Task
   - mcp__scrapbook__*
   - Skill(scrapbook:write)
 ---
@@ -15,9 +16,11 @@ Arguments: `$ARGUMENTS`
 
 ## What Scrapbook does
 
-1. Browse the web for a given theme/topic
-2. For each article, read it, capture translated screenshots of key quotes ("魚拓"), and invoke `/scrapbook:write` to generate a section that embeds those images in place of blockquote citations
-3. Concatenate all sections into a single Markdown digest
+1. Browse curation sites widely and **extract a list of distinct topics** — each topic may cite 1〜3 source URLs
+2. **Spawn one Task (general-purpose subagent) per topic, in parallel.** Each subagent opens its sources, selects thesis sentences, captures translated screenshots ("魚拓"), and writes a section via `/scrapbook:write`
+3. Concatenate all sections into a single Markdown digest via `assemble`
+
+**Scaling principle:** The main agent only holds the topic list. All heavy context (DOMs, quotes, translations) lives inside subagents. 20〜50 topics per run is achievable.
 
 **Output format: narrative text with translated-screenshot citations (魚拓), all in the user's language.** Each citation is a Gyazo-hosted screenshot of the original element with its text replaced by the translation — preserving the source's layout/typography while being readable in the user's language.
 
@@ -47,35 +50,61 @@ Arguments: `$ARGUMENTS`
 
 Choose a unique temp path for this run, e.g. `/tmp/scrapbook_<YYYYMMDD_HHMMSS>` or `/tmp/scrapbook_<random>`. **Remember it.** Pass it to every `/scrapbook:write` call and to `assemble`. No explicit setup needed — the write skill creates the dir when it saves `section_1.md`.
 
-### Phase 1: Browse & collect URLs
+### Phase 1: Browse curation sites & extract topic list
 
-Use `open(url)` to browse sites. Read the DOM structure to find interesting posts and articles.
+Use `open(url)` to browse curation sites widely. Read the DOM structure (titles, summaries, comments) to understand what conversations are happening. **Do not open individual articles yet** — that's the subagent's job.
 
-1. Choose as many sources as possible for the theme
-2. Browse front pages and/or search for the theme
-3. Follow links to source articles
+Extract a list of **distinct topics** — each topic is a short description of one discrete news item / discussion / release, paired with 1〜3 candidate source URLs that cover it. Aim for **20〜30 topics**. Deduplicate aggressively: two HN submissions about the same launch = one topic.
 
-Collect **as many candidate article URLs as possible** (20+).
+Example topic entries:
 
-### Phase 2: Read articles, capture 魚拓, generate sections
+```
+- topic: "Anthropic releases Claude Code 2.5 with agent SDK"
+  urls: [https://anthropic.com/news/...", "https://news.ycombinator.com/item?id=..."]
+- topic: "Berkeley RDI shows AI agent benchmarks are trivially gamed"
+  urls: ["https://rdi.berkeley.edu/blog/..."]
+```
 
-**Run everything in parallel.** Open pages, read content, capture translated screenshots, and generate sections concurrently:
+`close(id)` curation pages before Phase 2 to free browser resources.
 
-1. Call `open(url)` for up to 4 articles in parallel — each returns a page ID
-2. As each page loads, **read the full article carefully** and identify 1〜3 *sentences* that carry the thesis of the piece — the claims a reader would want to quote in a discussion. Skip headings, navigation, boilerplate, date stamps, author bios. Prefer:
+### Phase 2: Spawn one subagent per topic, in parallel batches
+
+For each topic, spawn a **Task (general-purpose subagent)** via the `Task` tool. Subagents run **concurrently** — issue up to **8 Task calls in a single message** for parallelism. Process the full topic list in waves of 8.
+
+**Task prompt template** (self-contained — the subagent does not see this conversation):
+
+```
+You are writing one section of a scrapbook digest about a specific topic.
+
+Topic: <topic description>
+Candidate source URLs: <url list>
+sectionDir: <sectionDir>
+Section number: <N>
+Target language: <user's language>
+
+Steps:
+1. Call mcp__scrapbook__open on each candidate URL (in parallel) to read its content.
+2. Read the full content of each. Identify which article(s) most authoritatively cover the topic — you may use 1 or several. Skip any that turn out to be off-topic or duplicates.
+3. From each chosen article, pick 1〜3 *sentences* that carry the thesis — claims a reader would quote in a discussion. Skip headings, navigation, boilerplate, author bios, date stamps. Prefer:
    - The one-sentence claim that best summarizes the piece's argument
-   - Concrete numbers, findings, or quoted statements from sources
+   - Concrete numbers, findings, quoted statements
    - Unexpected, counterintuitive, or opinionated lines
-   - **Avoid**: generic intros ("In recent years..."), table-of-contents items, obvious facts, section titles
+   Avoid: generic intros ("In recent years..."), TOC items, section titles.
+   Identify the smallest element that wraps exactly that sentence (usually a specific `p`, sometimes `blockquote`/`li`). Use the `p`, not a sub-span — surrounding context helps.
+4. For each chosen element, prepare a natural translation into <user's language> (not machine-translation style).
+5. Call mcp__scrapbook__capture({ id, sections: [{ selector, translated }, ...] }) for each page to get Gyazo URLs of the translated screenshots.
+6. Invoke /scrapbook:write with: article title (in <user's language>), the list of {image_url, translated_alt} pairs, the source URL(s), <user's language>, sectionDir=<sectionDir>, section number=<N>. /scrapbook:write saves section_<N>.md to sectionDir.
+7. Call mcp__scrapbook__close on every page you opened.
+8. Report back a single line: "section <N> written" (or "section <N> skipped: <reason>").
 
-   Identify the **smallest element that wraps exactly that sentence** (usually a specific `p`, sometimes `blockquote` or `li`; `h2`/`h3` only if the heading itself is the thesis). If the important sentence sits inside a paragraph with other sentences, still pick the `p` — the whole paragraph's context helps.
+Constraints:
+- Everything in <user's language>.
+- Do NOT call assemble; the coordinator does that.
+- Never use WebSearch or WebFetch — only mcp__scrapbook__open.
+- On error for a URL, skip it and continue with the remaining URLs. If no URL works, report "skipped".
+```
 
-   Prepare a natural translation for each into the user's language.
-3. Call `capture({ id, sections: [{ selector, translated }, ...] })` for each page — returns an array of `{ selector, url }`. The Gyazo URL points to a screenshot of that element with its text replaced by the translation. Capture calls run in parallel with other pages.
-4. Invoke `/scrapbook:write` for each article in parallel, passing the captured image URLs, **the original article URL**, `sectionDir`, and a unique section number — the write skill saves the section to `{sectionDir}/section_N.md`.
-5. `close(id)` to free pages when done.
-
-**Maximize concurrency.** open / capture / write calls all run in parallel since each article is independent.
+**Wave control.** Issue Tasks in groups of 8 per message. Wait for each wave to return before dispatching the next. Assign section numbers sequentially across all waves (1〜N). If a subagent reports "skipped", leave that section number as a gap — `assemble` will skip missing files.
 
 ### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 
