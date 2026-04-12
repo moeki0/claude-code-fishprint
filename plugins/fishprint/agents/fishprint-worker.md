@@ -5,6 +5,7 @@ tools:
   - Read
   - Write
   - WebSearch
+  - Bash(fishprint *)
   - Bash(~/.claude/plugins/cache/fishprint/*)
   - Bash(agent-browser *)
   - Bash(curl *)
