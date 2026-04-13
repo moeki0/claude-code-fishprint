@@ -58,7 +58,7 @@ Get a token at [gyazo.com/oauth/applications](https://gyazo.com/oauth/applicatio
 Playwright is installed as a dependency. On first run you may need to install browsers:
 
 ```bash
-npx playwright install chromium
+bunx playwright install chromium
 ```
 
 ## Usage
