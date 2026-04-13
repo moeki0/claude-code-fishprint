@@ -33,6 +33,12 @@ Phase 3 — Assemble
 /plugin install fishprint@fishprint
 ```
 
+### Prerequisites
+
+```bash
+brew install oven-sh/bun/bun
+```
+
 ### Gyazo token (required — 魚拓 are uploaded here)
 
 Store your Gyazo API token in the OS keychain:
@@ -52,7 +58,7 @@ Get a token at [gyazo.com/oauth/applications](https://gyazo.com/oauth/applicatio
 Playwright is installed as a dependency. On first run you may need to install browsers:
 
 ```bash
-bunx playwright install chromium
+npx playwright install chromium
 ```
 
 ## Usage
