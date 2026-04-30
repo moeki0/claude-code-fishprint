@@ -92,7 +92,9 @@ If `$ARGUMENTS` contains a temporal reference ("今日", "今週", "today", "thi
 
 ### Phase 1: Discover candidate topics
 
-**Default path — Exa neural search.** Issue 1〜3 Exa queries (varying angles on the theme) via the curl pattern above. Skim `title` + `highlights` for each result. Each Exa result is itself a candidate topic — no aggregator browsing needed when results are good.
+**Step 1a — WebSearch first for disambiguation and framing.** Before any Exa call, run a single `WebSearch` on the theme as written. Purpose: (1) resolve ambiguity in proper nouns (e.g. "OpenClaw" — a 1997 game remake or a 2026 AI agent?), (2) anchor the current meaning of the term so the Exa query you craft next targets the right entity, (3) catch breaking-news angles that may not yet be well-indexed by Exa. Read titles + snippets only; do not deep-dive. One query is usually enough — two if the theme has clearly distinct meanings and you need to pick.
+
+**Step 1b — Exa neural search (primary discovery).** With the disambiguated framing from 1a, issue 1〜3 Exa queries (varying angles on the theme) via the curl pattern above. Use specific entity names / qualifiers learned from 1a so neural search hits the right cluster. Skim `title` + `highlights` for each result. Each Exa result is itself a candidate topic — no aggregator browsing needed when results are good.
 
 If `EXA_API_KEY` is unset, the call errors, or results are sparse / off-topic, **fall back** to aggregator sites: `open(url)` HN / Lobsters / Reddit / arXiv etc. and read their DOMs (titles, summaries, comments) for candidate topics. **Do not open individual articles yet** — that's the subagent's job.
 
