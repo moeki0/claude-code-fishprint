@@ -54,7 +54,9 @@ export async function closeBrowser() {
 
 // --- Gyazo upload ---
 
-export async function uploadToGyazo(imageBuffer: Buffer, title?: string): Promise<string> {
+export type GyazoUrls = { imageUrl: string; permalinkUrl: string };
+
+export async function uploadToGyazo(imageBuffer: Buffer, title?: string): Promise<GyazoUrls> {
   const token = getKeychainToken("fishprint", "gyazo");
   if (!token) {
     throw new Error(
@@ -72,9 +74,11 @@ export async function uploadToGyazo(imageBuffer: Buffer, title?: string): Promis
   const res = await fetch("https://upload.gyazo.com/api/upload", { method: "POST", body: formData });
   if (!res.ok) throw new Error(`Gyazo upload failed: ${res.status} ${await res.text()}`);
   const data = await res.json() as Record<string, any>;
-  return data.image_url || data.url || data.permalink_url;
+  const imageUrl = data.image_url || data.url || data.permalink_url;
+  const permalinkUrl = data.permalink_url || data.url || imageUrl;
+  return { imageUrl, permalinkUrl };
 }
 
-export async function uploadToGyazoParallel(buffers: { buf: Buffer; title: string }[]): Promise<string[]> {
+export async function uploadToGyazoParallel(buffers: { buf: Buffer; title: string }[]): Promise<GyazoUrls[]> {
   return Promise.all(buffers.map(({ buf, title }) => uploadToGyazo(buf, title)));
 }

@@ -88,7 +88,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "capture",
-      description: "Screenshot selected elements on an open page and upload each to Gyazo. The original (untranslated) element is captured as-is. Returns an array of { selector, url } — embed url in Markdown as ![](url), and place the translated text as a blockquote below the image.",
+      description: "Screenshot selected elements on an open page and upload each to Gyazo. The original (untranslated) element is captured as-is. Returns an array of { selector, url, permalinkUrl } — embed url in Markdown as ![](url), then put permalinkUrl as a plain-text URL on its own line directly below the image (so pasting into Cosense embeds the Gyazo page), and place the translated text as a blockquote below that.",
       inputSchema: {
         type: "object",
         properties: {
@@ -213,7 +213,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       }
 
       const urls = await uploadToGyazoParallel(shots.map(s => ({ buf: s.buf, title: s.title })));
-      const results = shots.map((s, i) => ({ selector: s.selector, url: urls[i] }));
+      const results = shots.map((s, i) => ({ selector: s.selector, url: urls[i].imageUrl, permalinkUrl: urls[i].permalinkUrl }));
 
       return {
         content: [{ type: "text", text: JSON.stringify({ captured: results, rejected }) }],

@@ -154,7 +154,7 @@ Steps:
    - FORBIDDEN class patterns: anything that names a container — `entry-content`, `post-content`, `article-body`, `et_pb_*`, `prose`, `markdown-body`, `content`, `main`, etc.
    - If the article is on a platform (Medium, Substack, WordPress, Ghost, Notion), use `nth-of-type` or attribute selectors on `p` — e.g. `article p:nth-of-type(4)`, not the wrapping class.
    - When unsure between a narrow and a wide selector, pick the narrow one. capture rejects elements >600px tall or >1200 chars; better to get a clean rejection and retry than to ship a wall-of-text 魚拓.
-4. Call mcp__fishprint__capture({ id, selectors: [selector1, selector2, ...] }) for each page. The server screenshots the ORIGINAL (untranslated) element and uploads to Gyazo. **Response shape**: `{ captured: [{selector, url}], rejected: [{selector, reason}] }`. If any selector is rejected (too tall, too much text, or not found), pick a narrower alternative and call capture again for just those selectors. Do not fall back to a wider selector — go narrower.
+4. Call mcp__fishprint__capture({ id, selectors: [selector1, selector2, ...] }) for each page. The server screenshots the ORIGINAL (untranslated) element and uploads to Gyazo. **Response shape**: `{ captured: [{selector, url, permalinkUrl}], rejected: [{selector, reason}] }`. `url` is the direct image URL (i.gyazo.com/...png) for embedding; `permalinkUrl` is the Gyazo page URL (gyazo.com/...) which must be written as a plain-text URL on its own line directly below the image so that pasting into Cosense embeds the Gyazo page. If any selector is rejected (too tall, too much text, or not found), pick a narrower alternative and call capture again for just those selectors. Do not fall back to a wider selector — go narrower.
 5. For each captured quote, prepare a natural translation into <user's language> (not machine-translation style). The translation goes into the Markdown under the image, not into the image itself.
 6. Compose the Markdown section yourself and save it directly with the `Write` tool to `<sectionDir>/section_<N>.md`.
 
@@ -167,12 +167,14 @@ Steps:
    why it matters, the key points. Connects the 魚拓 below together.
 
    ![Original-language quote, as shown on the page](https://i.gyazo.com/xxx.png)
+   https://gyazo.com/xxx
 
    > 自然な訳文。機械翻訳調にならないように。
 
    More narrative that transitions to the next 魚拓.
 
    ![Another original quote](https://i.gyazo.com/yyy.png)
+   https://gyazo.com/yyy
 
    > もう一つの訳文。
 
@@ -188,7 +190,7 @@ Steps:
    Rules for the section:
    - `##` heading = topic title in <user's language>.
    - Narrative text drives the flow; 魚拓 + translation pairs are evidence. NEVER stack two pairs back-to-back without narrative between them.
-   - Use every image URL returned by `capture`. Each MUST be followed immediately by a `>` blockquote containing the translation of that quote.
+   - Use every image URL returned by `capture`. Each image MUST be followed immediately by the `permalinkUrl` on its own line as a plain-text URL (no Markdown link syntax — just the bare URL), then a `>` blockquote containing the translation of that quote.
    - The image `alt` text should briefly describe the original (e.g. the first few words of the original language), NOT the translation — the translation lives in the blockquote below.
    - **REQUIRED — visually central images:** If the article has a hero image that *is* the subject of the story (a cat photo for cat news, a product shot, a screenshot of a new UI, a photo of the person interviewed), you MUST embed it using its original URL: `![description](https://example.com/image.jpg)`. Do not omit the defining visual of a visual story. Also embed graphs, benchmark tables, and architecture diagrams when they convey information text alone cannot.
    - ALWAYS end the section with link(s) to the original source(s). Mandatory.
