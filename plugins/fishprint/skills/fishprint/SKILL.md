@@ -29,21 +29,36 @@ Arguments: `$ARGUMENTS`
 
 ## Sources
 
-**Choose sources appropriate for the theme.** Do not rely on a fixed list — pick sources where the topic is actively discussed. Examples:
+**Primary discovery: Exa neural search.** Exa is biased toward primary sources (individual blogs, official posts, papers, Substack) and surfaces theme-aligned content rather than popularity-ranked aggregations. Use it first.
+
+**When to prefer aggregators over Exa:** Exa is strongest for *theme-driven deep dives* — give it a topic, get primary sources. It is weaker for *realtime buzz* — "what is the crowd talking about right now," because that signal lives in human voting on HN / Reddit / Lobsters, not in the document index. If `$ARGUMENTS` reads like "今何が話題か" / "what's hot today" / a broad domain sweep with no specific theme, start with aggregators and use Exa to enrich. If it names a specific theme, start with Exa. Add `maxAgeHours: 24` (or smaller) on Exa calls to bias toward fresh content when the theme is time-sensitive.
+
+```bash
+curl -s -X POST https://api.exa.ai/search \
+  -H "x-api-key: $EXA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"<theme, in English for global topics>","type":"auto","numResults":15,"contents":{"highlights":{"maxCharacters":600}}}'
+```
+
+Tips:
+- Translate the theme to English before querying for global/international topics — Exa's neural search tracks the query language, and English yields deeper primary sources.
+- Use `type:"auto"` for most themes; `type:"deep"` if you want multi-step synthesis (slower, more expensive).
+- Skim returned `title` + `highlights[0]` to pick ~8 strongest topics. Treat each result as a candidate topic with the URL as its source.
+
+**Fallback when Exa is unavailable** (no `EXA_API_KEY`, API error, empty results, or topic too niche for neural search). Pick aggregators appropriate for the theme:
 
 - **Tech general**: Hacker News (`news.ycombinator.com`, `hn.algolia.com/?q=QUERY`), Lobsters (`lobste.rs`)
 - **AI/ML**: /r/MachineLearning, /r/LocalLLaMA, Papers With Code
 - **Security**: /r/netsec, Krebs on Security
 - **Design**: Designer News, /r/design
 - **Science**: /r/science, Phys.org
-- **Academic / Papers**: arXiv (`arxiv.org/list/{subject}/recent`), Semantic Scholar (`semanticscholar.org`), Google Scholar (`scholar.google.com`), Papers With Code, ACM Digital Library, OpenReview (`openreview.net`)
-- **Programming languages**: respective community forums, Weekly newsletters
+- **Academic / Papers**: arXiv (`arxiv.org/list/{subject}/recent`), Semantic Scholar, Google Scholar, OpenReview
 - **Any topic**: Reddit (`old.reddit.com/r/{topic}`) works as a universal curation layer
 - **X/Twitter**: if curated sites link to tweets, follow and capture them (public tweets work without login)
 
-**For global/international topics, use English-language sources only.** English sources have the highest volume, fastest updates, and best coverage for tech, science, AI, security, etc. Only use non-English sources when the topic is specifically regional (e.g. Japanese domestic policy, local events).
+**For global/international topics, use English-language sources only.** Only use non-English sources when the topic is specifically regional (e.g. Japanese domestic policy, local events).
 
-**Finding sources:** Use DuckDuckGo via `open("https://duckduckgo.com/?q=QUERY")` to discover good pages for any topic. Also try Wikipedia as a starting point and follow its references.
+**Finding more sources:** Use DuckDuckGo via `open("https://duckduckgo.com/?q=QUERY")`. Also try Wikipedia as a starting point and follow its references.
 
 ## Flow
 
@@ -75,13 +90,15 @@ If `$ARGUMENTS` contains a temporal reference ("今日", "今週", "today", "thi
 
 **This range is a hard filter.** Carry it through all phases: only select topics published within the window, and pass it explicitly to every subagent so they can reject off-window articles.
 
-### Phase 1: Browse curation sites & extract topic list
+### Phase 1: Discover candidate topics
 
-Use `open(url)` to browse curation sites widely. Read the DOM structure (titles, summaries, comments) to understand what conversations are happening. **Do not open individual articles yet** — that's the subagent's job.
+**Default path — Exa neural search.** Issue 1〜3 Exa queries (varying angles on the theme) via the curl pattern above. Skim `title` + `highlights` for each result. Each Exa result is itself a candidate topic — no aggregator browsing needed when results are good.
+
+If `EXA_API_KEY` is unset, the call errors, or results are sparse / off-topic, **fall back** to aggregator sites: `open(url)` HN / Lobsters / Reddit / arXiv etc. and read their DOMs (titles, summaries, comments) for candidate topics. **Do not open individual articles yet** — that's the subagent's job.
 
 **If a time constraint was resolved in Phase 0.5:** only include candidates whose publish date falls within that range. Discard anything outside it, even if it seems interesting.
 
-**Keep a running log of the curation pages you visited** (name + URL). You will include this in the digest preamble so the reader can see *what was surveyed* — anti-FOMO by showing the work.
+**Keep a running log of what you actually surveyed** — Exa queries used, or curation pages visited (name + URL). You will include this in the digest preamble so the reader can see *what was surveyed* — anti-FOMO by showing the work.
 
 Extract **candidate topics** — short descriptions of discrete news items / discussions / releases, each paired with 1〜3 source URLs. Collect more candidates than you will keep (e.g. ~15〜20). Deduplicate aggressively: two HN submissions about the same launch = one candidate topic.
 
@@ -211,16 +228,14 @@ assemble({
 **Preamble** — write it in the user's language. Required. Include:
 
 1. **A humble scope line.** One sentence that makes clear this is one curator's view, not a complete list. Example (JA): *"2026年4月12日、{theme}まわりで目に入ったトピック8件。網羅ではなく、今日の干し草の山から拾い上げた8本。"*  Example (EN): *"One curator's view of {theme} on 2026-04-12 — eight items lifted from today's haystack, not a complete index."*
-2. **Sources surveyed.** Bullet list of the curation pages you actually visited in Phase 1, with URLs. This is the "work log" that defuses "what else did you skip?" anxiety.
+2. **Sources surveyed.** Work log of what you actually queried — Exa queries used (verbatim), and any aggregator pages visited as fallback. This defuses "what else did you skip?" anxiety.
 
 ```markdown
 > 2026-04-12、AIエージェントまわりで目に入った8件。網羅ではなく、今日の干し草の山から拾い上げた分。
 
 **今日見た場所:**
-- [Hacker News front page](https://news.ycombinator.com/)
-- [Lobsters](https://lobste.rs/)
-- [/r/MachineLearning](https://old.reddit.com/r/MachineLearning/)
-- [arXiv cs.LG recent](https://arxiv.org/list/cs.LG/recent)
+- Exa: `"AI agent benchmarks gaming 2026"`, `"Claude Code agent SDK release"`
+- [Hacker News front page](https://news.ycombinator.com/) (Exa結果の補完として)
 ```
 
 **Appendix** — optional but strongly preferred. Format as a `## Also seen` (or localized equivalent) section listing the candidate topics you rejected in Phase 1. One line per item: title, source, and a one-line reason. This shows readers what *was* in your field of view but didn't make the cut — so FOMO doesn't have to guess.
