@@ -1,0 +1,11 @@
+{
+  "name": "fishprint-pi-package",
+  "version": "2.31.0",
+  "private": true,
+  "description": "Fishprint tools and skill for pi — primary-source 魚拓 web digests.",
+  "keywords": ["pi-package", "fishprint", "gyotaku", "screenshot", "digest", "research"],
+  "pi": {
+    "extensions": ["./pi/extensions"],
+    "skills": ["./pi/skills"]
+  }
+}
