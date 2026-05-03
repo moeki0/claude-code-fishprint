@@ -8,19 +8,39 @@ Each 魚拓 shows the original page **exactly as published** — original langua
 
 ## Install
 
+Claude Code plugin:
+
 ```
 /plugin marketplace add moeki0/fishprint
 /plugin install fishprint@fishprint
+```
+
+Pi package:
+
+```bash
+pi install https://github.com/moeki0/fishprint
+# local development checkout:
+pi install /path/to/fishprint
 ```
 
 See [plugins/fishprint/README.md](plugins/fishprint/README.md) for prerequisites and detailed usage.
 
 ## Quick start
 
+Claude Code:
+
 ```
 /fishprint AI agents
 /fishprint Rust async
 /fishprint              # no theme — whatever is interesting right now
+```
+
+Pi:
+
+```
+/fishprint AI agents
+/fishprint Rust async
+/skill:fishprint AI agents
 ```
 
 ## License
